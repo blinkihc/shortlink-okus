@@ -1,141 +1,209 @@
+import { useEffect, useState } from 'react';
+import { useAnalyticsStore } from '../../stores/useAnalyticsStore';
 import { useLinkStore } from '../../stores/useLinkStore';
+import { BarChart } from './BarChart';
+import { MousePointerClick, QrCode, TrendingUp, Sparkles, Smartphone } from 'lucide-react';
 
 export function AnalyticsView() {
-  const { links } = useLinkStore();
+  const { 
+    events, 
+    initializeAnalytics, 
+    recordClick, 
+    recordScan, 
+    getDailyStats, 
+    getReferrerBreakdown, 
+    getOsBreakdown, 
+    getTotalMetrics 
+  } = useAnalyticsStore();
 
-  const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
-  const totalScans = links.reduce((sum, l) => sum + l.scans, 0);
+  const { links, showToast } = useLinkStore();
+  const [simulationLoading, setSimulationLoading] = useState(false);
 
-  const daysData = [
-    { day: 'Sen', clicks: 60, scans: 35 },
-    { day: 'Sel', clicks: 75, scans: 45 },
-    { day: 'Rab', clicks: 90, scans: 60 },
-    { day: 'Kam', clicks: 50, scans: 30 },
-    { day: 'Jum', clicks: 95, scans: 70 },
-    { day: 'Sab', clicks: 100, scans: 85 },
-    { day: 'Min', clicks: 80, scans: 50 },
-  ];
+  useEffect(() => {
+    initializeAnalytics();
+  }, [initializeAnalytics]);
+
+  const totals = getTotalMetrics();
+  const dailyStats = getDailyStats(7);
+  const referrerData = getReferrerBreakdown();
+  const osData = getOsBreakdown();
+
+  // Handler simulasi event agar pengguna dapat menguji interaksi langsung
+  const handleSimulateClick = async () => {
+    if (links.length === 0) return;
+    setSimulationLoading(true);
+    const randomLink = links[Math.floor(Math.random() * links.length)];
+    const referrers = ['WhatsApp', 'Instagram', 'TikTok', 'Browser Langsung'] as const;
+    const ref = referrers[Math.floor(Math.random() * referrers.length)];
+    const osList = ['Android', 'iOS'] as const;
+    const os = osList[Math.floor(Math.random() * osList.length)];
+
+    await recordClick(randomLink.id, ref, os);
+    showToast(`Simulasi: 1 Klik tercatat dari ${ref} (${os})!`);
+    setSimulationLoading(false);
+  };
+
+  const handleSimulateScan = async () => {
+    if (links.length === 0) return;
+    setSimulationLoading(true);
+    const randomLink = links[Math.floor(Math.random() * links.length)];
+    const referrers = ['WhatsApp', 'Instagram', 'Browser Langsung'] as const;
+    const ref = referrers[Math.floor(Math.random() * referrers.length)];
+    const osList = ['Android', 'iOS'] as const;
+    const os = osList[Math.floor(Math.random() * osList.length)];
+
+    await recordScan(randomLink.id, ref, os);
+    showToast(`Simulasi: 1 Scan QR tercatat via ${ref} (${os})!`);
+    setSimulationLoading(false);
+  };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-xl font-extrabold text-snip-ink tracking-tight">Pulse Analytics</h2>
-        <p className="text-xs text-slate-600 mt-0.5">Metrik performa klik dan scan QR terupdate dari tautan aktifmu.</p>
+    <div className="flex flex-col gap-4 pb-4">
+      {/* Header Info */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-extrabold text-snip-ink tracking-tight flex items-center gap-1.5">
+            Pulse Analytics
+            <span className="bg-snip-accent text-snip-ink text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-snip-ink">
+              LIVE
+            </span>
+          </h2>
+          <p className="text-xs text-slate-600 mt-0.5">
+            Metrik performa klik tautan dan scan QR (Quick Response) luring.
+          </p>
+        </div>
       </div>
 
-      {/* Top 2 Stats */}
+      {/* Action Bar Simulasi Uji Coba Cepat */}
+      <div className="card-neo bg-slate-50 flex items-center justify-between p-3 gap-2">
+        <div className="flex items-center gap-1.5 text-xs font-extrabold text-snip-ink">
+          <Sparkles className="w-4 h-4 text-snip-primary" />
+          <span>Uji Coba Metrik:</span>
+        </div>
+        <div className="flex gap-1.5">
+          <button
+            onClick={handleSimulateClick}
+            disabled={simulationLoading || links.length === 0}
+            className="btn-neo-secondary text-[11px] py-1 px-2.5 flex items-center gap-1 cursor-pointer"
+            title="Kirim 1 simulasi klik pengunjung"
+          >
+            <MousePointerClick className="w-3.5 h-3.5" />
+            <span>+1 Klik</span>
+          </button>
+          <button
+            onClick={handleSimulateScan}
+            disabled={simulationLoading || links.length === 0}
+            className="btn-neo text-[11px] py-1 px-2.5 flex items-center gap-1 cursor-pointer"
+            title="Kirim 1 simulasi pemindaian QR"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            <span>+1 Scan QR</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Top 2 Stats Cards */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="card-neo flex flex-col gap-1">
-          <span className="text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">TOTAL KLIK</span>
-          <span className="text-2xl font-extrabold text-snip-primary">{totalClicks.toLocaleString()}</span>
-          <span className="text-[9px] font-extrabold text-snip-success bg-green-100 border border-snip-ink rounded px-1.5 py-0.5 w-fit">
-            +24% Minggu Ini
+        <div className="card-neo flex flex-col gap-1 relative overflow-hidden">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider">TOTAL KLIK</span>
+            <MousePointerClick className="w-4 h-4 text-snip-primary" />
+          </div>
+          <span className="text-2xl font-extrabold text-snip-primary tracking-tight">
+            {totals.totalClicks.toLocaleString()}
           </span>
+          <div className="flex items-center gap-1 text-[9px] font-extrabold text-emerald-700 bg-emerald-100 border border-snip-ink rounded px-1.5 py-0.5 w-fit">
+            <TrendingUp className="w-3 h-3 inline" />
+            <span>+24% Minggu Ini</span>
+          </div>
         </div>
 
-        <div className="card-neo flex flex-col gap-1">
-          <span className="text-[10px] font-extrabold uppercase text-slate-500 tracking-wider">TOTAL SCAN QR</span>
-          <span className="text-2xl font-extrabold text-snip-primary">{totalScans.toLocaleString()}</span>
-          <span className="text-[9px] font-extrabold text-snip-success bg-green-100 border border-snip-ink rounded px-1.5 py-0.5 w-fit">
-            +18% Minggu Ini
+        <div className="card-neo flex flex-col gap-1 relative overflow-hidden">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider">TOTAL SCAN QR</span>
+            <QrCode className="w-4 h-4 text-snip-danger" />
+          </div>
+          <span className="text-2xl font-extrabold text-snip-danger tracking-tight">
+            {totals.totalScans.toLocaleString()}
           </span>
+          <div className="flex items-center gap-1 text-[9px] font-extrabold text-emerald-700 bg-emerald-100 border border-snip-ink rounded px-1.5 py-0.5 w-fit">
+            <TrendingUp className="w-3 h-3 inline" />
+            <span>+18% Minggu Ini</span>
+          </div>
         </div>
       </div>
 
       {/* 7 Days Bar Chart */}
-      <section className="card-neo flex flex-col gap-3">
-        <div className="flex flex-col">
-          <h3 className="text-sm font-extrabold text-snip-ink">Aktivitas 7 Hari Terakhir</h3>
-          <span className="text-[11px] text-slate-500">Klik vs Pindai QR</span>
-        </div>
-
-        <div className="h-40 border-b-2 border-snip-ink flex items-end justify-between px-2 gap-1.5 pt-4">
-          {daysData.map(item => (
-            <div key={item.day} className="flex-1 flex flex-col items-center h-full justify-end gap-1">
-              <div className="w-full max-w-[28px] h-full flex items-end gap-0.5">
-                <div 
-                  className="flex-1 bg-snip-primary border-t-2 border-x-2 border-snip-ink rounded-t-sm transition-all duration-300"
-                  style={{ height: `${item.clicks}%` }}
-                  title={`${item.day}: ${item.clicks} Klik`}
-                />
-                <div 
-                  className="flex-1 bg-snip-accent border-t-2 border-x-2 border-snip-ink rounded-t-sm transition-all duration-300"
-                  style={{ height: `${item.scans}%` }}
-                  title={`${item.day}: ${item.scans} Scan`}
-                />
-              </div>
-              <span className="text-[10px] font-bold text-slate-500">{item.day}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-4 justify-center text-xs font-bold pt-1">
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 border border-snip-ink rounded-xs bg-snip-primary"></span>
-            <span>Klik Tautan</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 border border-snip-ink rounded-xs bg-snip-accent"></span>
-            <span>Scan Kode QR</span>
-          </div>
-        </div>
+      <section className="card-neo">
+        <BarChart data={dailyStats} />
       </section>
 
       {/* Referral Breakdown */}
       <section className="card-neo flex flex-col gap-3">
-        <h3 className="text-sm font-extrabold text-snip-ink">Sumber Kanal Teratas (Referrer)</h3>
-
-        <div className="flex flex-col gap-1">
-          <div className="flex justify-between text-xs font-bold">
-            <span>WhatsApp Chat</span>
-            <span className="text-snip-primary">580 Klik (45%)</span>
-          </div>
-          <div className="w-full h-3 bg-snip-muted border border-snip-ink rounded-full overflow-hidden">
-            <div className="h-full bg-snip-success border-r border-snip-ink" style={{ width: '45%' }}></div>
-          </div>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-extrabold text-snip-ink">Sumber Kanal Teratas (Referrer)</h3>
+          <span className="text-[10px] font-extrabold text-slate-500 bg-slate-100 px-2 py-0.5 border border-snip-ink rounded">
+            {events.length} Sesi Terdata
+          </span>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <div className="flex justify-between text-xs font-bold">
-            <span>Instagram Bio & Story</span>
-            <span className="text-snip-primary">390 Klik (30%)</span>
-          </div>
-          <div className="w-full h-3 bg-snip-muted border border-snip-ink rounded-full overflow-hidden">
-            <div className="h-full bg-snip-danger border-r border-snip-ink" style={{ width: '30%' }}></div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <div className="flex justify-between text-xs font-bold">
-            <span>TikTok Profile</span>
-            <span className="text-snip-primary">195 Klik (15%)</span>
-          </div>
-          <div className="w-full h-3 bg-snip-muted border border-snip-ink rounded-full overflow-hidden">
-            <div className="h-full bg-snip-ink border-r border-snip-ink" style={{ width: '15%' }}></div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <div className="flex justify-between text-xs font-bold">
-            <span>Browser Langsung</span>
-            <span className="text-snip-primary">115 Klik (10%)</span>
-          </div>
-          <div className="w-full h-3 bg-snip-muted border border-snip-ink rounded-full overflow-hidden">
-            <div className="h-full bg-snip-accent border-r border-snip-ink" style={{ width: '10%' }}></div>
-          </div>
+        <div className="flex flex-col gap-2.5">
+          {referrerData.map((item) => (
+            <div key={item.referrer} className="flex flex-col gap-1">
+              <div className="flex justify-between text-xs font-extrabold">
+                <span className="text-snip-ink">{item.referrer}</span>
+                <span className="text-slate-700">
+                  {item.count} Interaksi ({item.percentage}%)
+                </span>
+              </div>
+              <div className="w-full h-3.5 bg-slate-100 border-2 border-snip-ink rounded-full overflow-hidden shadow-neo-low">
+                <div
+                  className={`h-full ${item.colorClass} border-r-2 border-snip-ink transition-all duration-500`}
+                  style={{ width: `${item.percentage}%` }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* OS Platform Split */}
-      <section className="card-neo flex flex-col gap-2">
-        <h3 className="text-sm font-extrabold text-snip-ink">Sistem Operasi Pengunjung</h3>
-        <div className="flex h-7 border-2 border-snip-ink rounded-md overflow-hidden text-[11px] font-extrabold text-white text-center shadow-neo-low">
-          <div className="bg-snip-success flex items-center justify-center" style={{ width: '64%' }}>
-            Android 64%
+      <section className="card-neo flex flex-col gap-2.5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-extrabold text-snip-ink flex items-center gap-1.5">
+            <Smartphone className="w-4 h-4 text-snip-primary" />
+            <span>Sistem Operasi Pengunjung</span>
+          </h3>
+          <span className="text-[10px] font-bold text-slate-500">Android vs iOS</span>
+        </div>
+
+        {/* Dual Split Bar */}
+        <div className="flex h-8 border-2 border-snip-ink rounded-md overflow-hidden text-[11px] font-extrabold text-white text-center shadow-neo-low">
+          <div
+            className="bg-snip-success flex items-center justify-center transition-all duration-300 gap-1 text-snip-ink"
+            style={{ width: `${osData.androidPct}%` }}
+            title={`Android: ${osData.android} pengguna (${osData.androidPct}%)`}
+          >
+            <span>Android</span>
+            <span className="bg-white/80 border border-snip-ink rounded px-1 text-[9px]">
+              {osData.androidPct}%
+            </span>
           </div>
-          <div className="bg-snip-primary flex items-center justify-center border-l-2 border-snip-ink" style={{ width: '36%' }}>
-            iOS 36%
+          <div
+            className="bg-snip-primary flex items-center justify-center border-l-2 border-snip-ink transition-all duration-300 gap-1"
+            style={{ width: `${osData.iosPct}%` }}
+            title={`iOS: ${osData.ios} pengguna (${osData.iosPct}%)`}
+          >
+            <span>iOS</span>
+            <span className="bg-white/80 text-snip-ink border border-snip-ink rounded px-1 text-[9px]">
+              {osData.iosPct}%
+            </span>
           </div>
+        </div>
+
+        <div className="flex justify-between text-[11px] font-bold text-slate-600 px-1">
+          <span>Android: {osData.android} perangkat</span>
+          <span>iOS: {osData.ios} perangkat</span>
         </div>
       </section>
     </div>

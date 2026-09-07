@@ -93,12 +93,12 @@
   - [x] 5.5 Implementasikan utilitas impor data JSON dengan validasi skema di `src/utils/backupHelper.ts`
   - [x] 5.6 Buat pengujian unit serialisasi dan impor data cadangan di `src/utils/backupHelper.test.ts`
 
-- [ ] 6.0 Pulse Analytics Engine & Performance Metrics Visualizer
-  - [ ] 6.1 Implementasikan pencatatan event klik dan scan lokal di `src/stores/useAnalyticsStore.ts`
-  - [ ] 6.2 Bangun komponen grafik batang `BarChart.tsx` untuk aktivitas 7 hari terakhir (Klik vs Scan QR) dengan gaya balok solid
-  - [ ] 6.3 Bangun bilah progress kanal perujuk teratas (WhatsApp, Instagram, TikTok, Browser Langsung)
-  - [ ] 6.4 Bangun visualisasi perbandingan sistem operasi pengguna (Android vs iOS)
-  - [ ] 6.5 Buat pengujian unit agregasi metrik analitik di `src/stores/useAnalyticsStore.test.ts`
+- [x] 6.0 Pulse Analytics Engine & Performance Metrics Visualizer
+  - [x] 6.1 Implementasikan pencatatan event klik dan scan lokal di `src/stores/useAnalyticsStore.ts`
+  - [x] 6.2 Bangun komponen grafik batang `BarChart.tsx` untuk aktivitas 7 hari terakhir (Klik vs Scan QR) dengan gaya balok solid
+  - [x] 6.3 Bangun bilah progress kanal perujuk teratas (WhatsApp, Instagram, TikTok, Browser Langsung)
+  - [x] 6.4 Bangun visualisasi perbandingan sistem operasi pengguna (Android vs iOS)
+  - [x] 6.5 Buat pengujian unit agregasi metrik analitik di `src/stores/useAnalyticsStore.test.ts`
 
 - [ ] 7.0 End-to-End Testing, Accessibility Audit, & Production Build Verification
   - [ ] 7.1 Jalankan seluruh rangkaian tes unit dengan perintah `bun test` dan pastikan tingkat kelulusan 100%
