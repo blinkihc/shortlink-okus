@@ -51,15 +51,15 @@
 
 ## Tasks
 
-- [ ] 0.0 Create feature branch
-  - [ ] 0.1 Create and checkout new branch (`git checkout -b feature/sniplink-mvp`)
+- [x] 0.0 Create feature branch
+  - [x] 0.1 Create and checkout new branch (`git checkout -b feature/sniplink-mvp`)
 
-- [ ] 1.0 Project Foundation & Tooling Setup (Bun + React + Vite + TypeScript + Tailwind Neo-Pop)
-  - [ ] 1.1 Inisialisasi proyek Vite dengan template React + TypeScript menggunakan Bun (`bun create vite . --template react-ts`)
-  - [ ] 1.2 Instal dependensi inti aplikasi (`bun add tailwindcss postcss autoprefixer zustand dexie lucide-react clsx tailwind-merge qrcode @zxing/library`)
-  - [ ] 1.3 Konfigurasi `tailwind.config.js` dengan token Neo-Pop: border 2px solid `#131B2E`, hard shadows (`4px 4px 0px #131B2E`), dan palet warna solid
-  - [ ] 1.4 Siapkan struktur dasar tata letak di `src/App.tsx` dengan simulator bingkai ponsel dan impor font Plus Jakarta Sans di `src/index.css`
-  - [ ] 1.5 Konfigurasi runner pengujian `bun test` dan buat uji kelayakan awal di `src/App.test.tsx`
+- [x] 1.0 Project Foundation & Tooling Setup (Bun + React + Vite + TypeScript + Tailwind Neo-Pop)
+  - [x] 1.1 Inisialisasi proyek Vite dengan template React + TypeScript menggunakan Bun (`bun create vite . --template react-ts`)
+  - [x] 1.2 Instal dependensi inti aplikasi (`bun add tailwindcss postcss autoprefixer zustand dexie lucide-react clsx tailwind-merge qrcode @zxing/library`)
+  - [x] 1.3 Konfigurasi `tailwind.config.js` dengan token Neo-Pop: border 2px solid `#131B2E`, hard shadows (`4px 4px 0px #131B2E`), dan palet warna solid
+  - [x] 1.4 Siapkan struktur dasar tata letak di `src/App.tsx` dengan simulator bingkai ponsel dan impor font Plus Jakarta Sans di `src/index.css`
+  - [x] 1.5 Konfigurasi runner pengujian `bun test` dan buat uji kelayakan awal di `src/App.test.tsx`
 
 - [ ] 2.0 Data Models, Local-First Database (Dexie.js), & State Management (Zustand)
   - [ ] 2.1 Buat definisi tipe domain TypeScript (`Link`, `UtmConfig`, `QrConfig`, `ClickEvent`) di `src/types/index.ts`
