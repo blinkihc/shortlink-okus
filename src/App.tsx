@@ -6,15 +6,41 @@ import {
   Home, 
   Smartphone, 
   RotateCcw,
-  Sparkles
+  Sparkles,
+  Clipboard,
+  Check,
+  AlertCircle
 } from 'lucide-react';
+import { useLinkStore } from './stores/useLinkStore';
+import { ShortenerCard } from './components/shortener/ShortenerCard';
+import { ResultCard } from './components/shortener/ResultCard';
+import { QRStudioCanvas } from './components/qr/QRStudioCanvas';
+import { LinksView } from './components/links/LinksView';
+import { AnalyticsView } from './components/analytics/AnalyticsView';
+import { LinkItemCard } from './components/links/LinkItemCard';
+import type { LinkItem } from './types';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'qr' | 'links' | 'analytics'>('home');
+  const { 
+    links, 
+    activeTab, 
+    setActiveTab, 
+    setQrActiveUrl, 
+    toastMessage, 
+    toastSuccess, 
+    showToast, 
+    initializeStore,
+    resetToDefault 
+  } = useLinkStore();
+
   const [isFullMode, setIsFullMode] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<string>('09:41');
+  const [createdResult, setCreatedResult] = useState<LinkItem | null>(null);
+  const [showClipboardBanner, setShowClipboardBanner] = useState<boolean>(true);
 
   useEffect(() => {
+    initializeStore();
+
     const updateTime = () => {
       const now = new Date();
       const h = String(now.getHours()).padStart(2, '0');
@@ -24,14 +50,27 @@ export function App() {
     updateTime();
     const interval = setInterval(updateTime, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [initializeStore]);
+
+  const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
+  const totalScans = links.reduce((sum, l) => sum + l.scans, 0);
+
+  const handleOpenQR = (url: string) => {
+    setQrActiveUrl(url);
+    setActiveTab('qr');
+  };
+
+  const handleCopyLink = (text: string) => {
+    navigator.clipboard?.writeText(text);
+    showToast(`Tersalin ke clipboard: ${text}`);
+  };
 
   return (
     <div className="w-full max-w-[1200px] mx-auto flex flex-col items-center p-4 gap-4">
       {/* Top Controller Bar */}
       <header className="w-full max-w-[420px] bg-snip-surface border-2 border-snip-ink rounded-md p-2.5 shadow-neo flex items-center justify-between gap-2">
         <div className="bg-snip-accent text-snip-ink text-[10px] font-extrabold px-2 py-0.5 rounded-sm border border-snip-ink tracking-wider">
-          PROTOTIPE REACT + BUN
+          REACT 19 + BUN MVP
         </div>
         <div className="text-xs font-bold text-snip-ink flex-1 truncate">
           SnipLink Mobile
@@ -48,11 +87,12 @@ export function App() {
           </button>
           <button 
             type="button"
-            onClick={() => window.location.reload()}
+            onClick={() => resetToDefault()}
             className="bg-snip-muted border border-snip-ink rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none"
-            title="Muat Ulang Aplikasi"
+            title="Reset Data ke Nilai Awal"
           >
             <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset</span>
           </button>
         </div>
       </header>
@@ -92,69 +132,99 @@ export function App() {
         </header>
 
         {/* Scrollable Content Viewport */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        <div id="screen-viewport" className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
           {activeTab === 'home' && (
-            <div className="flex flex-col gap-3">
-              <div className="card-neo">
-                <h1 className="text-lg font-extrabold mb-1">Pemendek Tautan Kilat</h1>
-                <p className="text-xs text-slate-600 mb-3">Tempel URL panjang untuk membuat tautan ringkas dan kode QR instan.</p>
-                <div className="flex flex-col gap-2">
-                  <input 
-                    type="url" 
-                    placeholder="https://tokopedia.com/promo-spesial..." 
-                    className="input-neo"
-                  />
-                  <button type="button" className="btn-neo-primary w-full mt-1">
-                    Potong Tautan Sekarang
+            <div className="flex flex-col gap-3.5">
+              {/* Clipboard Detected Banner */}
+              {showClipboardBanner && (
+                <div className="bg-snip-accent border-2 border-snip-ink rounded-md p-2.5 shadow-neo flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="w-7 h-7 bg-white border border-snip-ink rounded flex items-center justify-center shrink-0">
+                      <Clipboard className="w-4 h-4 text-snip-ink" />
+                    </div>
+                    <div className="truncate">
+                      <div className="text-[10px] font-extrabold uppercase">Tautan di Clipboard</div>
+                      <div className="text-xs font-bold truncate text-snip-ink">https://shopee.co.id/flash-sale/diskon-spesial</div>
+                    </div>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setShowClipboardBanner(false);
+                      showToast('Tautan clipboard siap dipotong.');
+                    }}
+                    className="btn-neo-surface btn-neo-sm px-2 py-1 shrink-0"
+                  >
+                    Gunakan
                   </button>
                 </div>
-              </div>
+              )}
 
+              {/* Master Shorten Form */}
+              <ShortenerCard onCreated={link => setCreatedResult(link)} />
+
+              {/* Created Result Popup Card */}
+              {createdResult && (
+                <ResultCard 
+                  link={createdResult}
+                  onClose={() => setCreatedResult(null)}
+                  onOpenQR={handleOpenQR}
+                  onCopy={handleCopyLink}
+                />
+              )}
+
+              {/* Quick Summary Stats Bar */}
               <div className="card-neo grid grid-cols-3 text-center p-3">
                 <div>
-                  <div className="text-xl font-extrabold text-snip-primary">3</div>
+                  <div className="text-xl font-extrabold text-snip-primary">{links.length}</div>
                   <div className="text-[11px] font-bold text-slate-600">Tautan Aktif</div>
                 </div>
                 <div className="border-x-2 border-snip-ink">
-                  <div className="text-xl font-extrabold text-snip-primary">1,280</div>
+                  <div className="text-xl font-extrabold text-snip-primary">{totalClicks.toLocaleString()}</div>
                   <div className="text-[11px] font-bold text-slate-600">Total Klik</div>
                 </div>
                 <div>
-                  <div className="text-xl font-extrabold text-snip-primary">462</div>
+                  <div className="text-xl font-extrabold text-snip-primary">{totalScans.toLocaleString()}</div>
                   <div className="text-[11px] font-bold text-slate-600">Scan QR</div>
+                </div>
+              </div>
+
+              {/* Recent Links Section */}
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-extrabold text-snip-ink">Tautan Terbaru</h3>
+                  <button 
+                    type="button" 
+                    onClick={() => setActiveTab('links')}
+                    className="text-xs font-bold text-snip-primary underline underline-offset-2"
+                  >
+                    Lihat Semua
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  {links.slice(0, 3).map(link => (
+                    <LinkItemCard 
+                      key={link.id} 
+                      link={link} 
+                      onOpenQR={handleOpenQR} 
+                    />
+                  ))}
                 </div>
               </div>
             </div>
           )}
 
           {activeTab === 'qr' && (
-            <div className="flex flex-col gap-3">
-              <div className="card-neo flex flex-col items-center p-6 text-center">
-                <div className="text-sm font-extrabold mb-1">Playful QR Studio</div>
-                <p className="text-xs text-slate-600 mb-4">Kustomisasi kode QR visual dengan warna solid.</p>
-                <div className="w-48 h-48 bg-white border-2 border-snip-ink rounded-lg shadow-neo flex items-center justify-center">
-                  <QrCode className="w-32 h-32 text-snip-primary" />
-                </div>
-              </div>
-            </div>
+            <QRStudioCanvas />
           )}
 
           {activeTab === 'links' && (
-            <div className="flex flex-col gap-3">
-              <div className="card-neo">
-                <div className="text-sm font-extrabold mb-1">Daftar Tautan Tersimpan</div>
-                <p className="text-xs text-slate-600">Kelola riwayat tautan secara lokal di perangkatmu.</p>
-              </div>
-            </div>
+            <LinksView onOpenQR={handleOpenQR} />
           )}
 
           {activeTab === 'analytics' && (
-            <div className="flex flex-col gap-3">
-              <div className="card-neo">
-                <div className="text-sm font-extrabold mb-1">Pulse Analytics</div>
-                <p className="text-xs text-slate-600">Performa klik dan pemindaian 7 hari terakhir.</p>
-              </div>
-            </div>
+            <AnalyticsView />
           )}
         </div>
 
@@ -218,6 +288,18 @@ export function App() {
           <div className="w-32 h-1 bg-snip-ink rounded-full"></div>
         </div>
       </main>
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <aside className="fixed bottom-6 bg-snip-ink text-white border-2 border-white rounded-md shadow-neo-deep px-4 py-2.5 text-xs font-bold flex items-center gap-2 z-50 animate-bounce">
+          {toastSuccess ? (
+            <Check className="w-4 h-4 text-snip-success shrink-0" strokeWidth={3} />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-snip-danger shrink-0" strokeWidth={3} />
+          )}
+          <span>{toastMessage}</span>
+        </aside>
+      )}
     </div>
   );
 }
