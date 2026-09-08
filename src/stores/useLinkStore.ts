@@ -57,6 +57,26 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
 
   initializeStore: async () => {
     try {
+      const res = await fetch('/api/links');
+      if (res.ok) {
+        const body = await res.json();
+        if (body.success && Array.isArray(body.data) && body.data.length > 0) {
+          set({ links: body.data, qrActiveUrl: body.data[0].shortUrl });
+          if (typeof window !== 'undefined' && 'indexedDB' in window) {
+            try {
+              const db = getDb();
+              await db.links.clear();
+              await db.links.bulkAdd(body.data);
+            } catch {}
+          }
+          return;
+        }
+      }
+    } catch {
+      // API tidak terjangkau (offline / dev standalone)
+    }
+
+    try {
       if (typeof window !== 'undefined' && 'indexedDB' in window) {
         const db = getDb();
         const storedLinks = await db.links.toArray();
@@ -73,6 +93,28 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
   },
 
   addLink: async (data) => {
+    try {
+      const res = await fetch('/api/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        const body = await res.json();
+        if (body.success && body.data) {
+          const created = body.data;
+          set({ links: [created, ...get().links] });
+          if (typeof window !== 'undefined' && 'indexedDB' in window) {
+            try { await getDb().links.add(created); } catch {}
+          }
+          get().showToast('Tautan ringkas berhasil disimpan ke server terpusat!');
+          return created;
+        }
+      }
+    } catch {
+      // Fallback ke penyimpanan lokal
+    }
+
     const now = new Date().toISOString();
     const newLink: LinkItem = {
       id: `link-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -116,6 +158,7 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
     set({ links: updated });
 
     try {
+      fetch(`/api/links/${id}/pin`, { method: 'PATCH' }).catch(() => {});
       if (typeof window !== 'undefined' && 'indexedDB' in window) {
         const target = updated.find(l => l.id === id);
         if (target) await getDb().links.put(target);
@@ -130,6 +173,7 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
     set({ links: updated });
 
     try {
+      fetch(`/api/links/${id}`, { method: 'DELETE' }).catch(() => {});
       if (typeof window !== 'undefined' && 'indexedDB' in window) {
         await getDb().links.delete(id);
       }

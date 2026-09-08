@@ -9,6 +9,7 @@ Seluruh dokumentasi teknis, laporan perancangan, panduan implementasi, dan stand
 | :--- | :--- | :--- |
 | **Panduan Handoff Agen** | Rujukan utama arsitektur, pola kode, status task, dan panduan untuk agen selanjutnya. | [`panduan_handoff_agent.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_handoff_agent.md) |
 | **Panduan Deployment Easypanel** | Prosedur langkah demi langkah deployment aplikasi ke VPS menggunakan panel Easypanel & Docker. | [`panduan_deployment_easypanel.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_deployment_easypanel.md) |
+| **Panduan Backend & Database Terpusat** | Arsitektur REST API Bun, database SQLite persisten, dan volume mount di Easypanel. | [`panduan_backend_dan_database_terpusat.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_backend_dan_database_terpusat.md) |
 | **Panduan Pemisahan Lingkungan** | Arsitektur pembagian lingkungan lokal vs produksi, percabangan Git, dan audit tata letak seluler. | [`panduan_pemisahan_lingkungan_dan_vps.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_pemisahan_lingkungan_dan_vps.md) |
 | **Panduan Penggunaan & Tutorial** | Panduan interaktif pengguna untuk fitur pemendek URL, analitik, dan QR Studio beserta domain asli `okus.me`. | [`panduan_penggunaan_dan_tutorial.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_penggunaan_dan_tutorial.md) |
 
