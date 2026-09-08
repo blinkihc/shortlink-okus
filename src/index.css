@@ -53,41 +53,48 @@
     @apply w-full bg-snip-bg border-2 border-snip-ink rounded-md px-3.5 py-2.5 text-sm font-semibold text-snip-ink outline-none shadow-neo-low focus:bg-white focus:border-snip-primary transition-colors;
   }
 
-  /* Dark Mode Overrides for Neo-Pop Components */
+  /* Dark Mode Overrides for Neo-Pop Components - High Contrast & Anti-Strain */
   html.dark .btn-neo {
-    border-color: #334155;
+    border-color: #64748B;
   }
 
-  html.dark .btn-neo-primary,
-  html.dark .btn-neo-accent,
-  html.dark .btn-neo-surface {
-    box-shadow: 4px 4px 0px #030712;
+  html.dark .btn-neo-primary {
+    border-color: #94A3B8;
+    box-shadow: 4px 4px 0px #000000;
+  }
+
+  html.dark .btn-neo-accent {
+    border-color: #CBD5E1;
+    box-shadow: 4px 4px 0px #000000;
   }
 
   html.dark .btn-neo-surface {
-    background-color: #1e293b;
-    color: #f8fafc;
+    background-color: #1E293B;
+    border-color: #64748B;
+    color: #F8FAFC;
+    box-shadow: 4px 4px 0px #000000;
   }
 
   html.dark .btn-neo-sm {
-    box-shadow: 2px 2px 0px #030712;
+    box-shadow: 2px 2px 0px #000000;
   }
 
   html.dark .card-neo {
-    background-color: #0f172a;
-    border-color: #334155;
-    box-shadow: 4px 4px 0px #030712;
-    color: #f8fafc;
+    background-color: #0F172A;
+    border-color: #64748B; /* Border kontras tinggi tegas tanpa bikin mata lelah */
+    box-shadow: 4px 4px 0px #000000;
+    color: #F8FAFC;
   }
 
   html.dark .input-neo {
-    background-color: #1e293b;
-    border-color: #334155;
-    box-shadow: 2px 2px 0px #030712;
-    color: #f8fafc;
+    background-color: #1E293B;
+    border-color: #64748B;
+    box-shadow: 2px 2px 0px #000000;
+    color: #F8FAFC;
   }
 
   html.dark .input-neo:focus {
-    background-color: #334155;
+    background-color: #26334D;
+    border-color: #FEA619;
   }
 }

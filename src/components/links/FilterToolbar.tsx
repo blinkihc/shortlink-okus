@@ -45,7 +45,6 @@ export function FilterToolbar() {
       const content = event.target?.result as string;
       const result = parseAndValidateJsonBackup(content);
       if (result.success && result.data) {
-        // Load into store
         useLinkStore.setState({ links: result.data });
         showToast(`${result.data.length} tautan berhasil dipulihkan dari cadangan!`);
       } else {
@@ -60,7 +59,7 @@ export function FilterToolbar() {
     <div className="flex flex-col gap-2.5">
       {/* Search Input */}
       <div className="relative flex items-center">
-        <Search className="w-4 h-4 text-slate-500 absolute left-3 pointer-events-none" />
+        <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3 pointer-events-none" />
         <input 
           type="text" 
           value={searchQuery}
@@ -78,8 +77,10 @@ export function FilterToolbar() {
               key={cat.value}
               type="button"
               onClick={() => setSelectedCategory(cat.value)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-md border-2 border-snip-ink transition-colors shadow-neo-low ${
-                selectedCategory === cat.value ? 'bg-snip-primary text-white translate-x-[1px] translate-y-[1px] shadow-none' : 'bg-white text-snip-ink'
+              className={`text-xs font-bold px-3 py-1.5 rounded-md border-2 border-snip-ink dark:border-slate-500 transition-colors shadow-neo-low dark:shadow-none cursor-pointer ${
+                selectedCategory === cat.value 
+                  ? 'bg-snip-primary text-white translate-x-[1px] translate-y-[1px]' 
+                  : 'bg-white dark:bg-slate-800 text-snip-ink dark:text-slate-200 hover:dark:bg-slate-700'
               }`}
             >
               {cat.label}
@@ -91,7 +92,7 @@ export function FilterToolbar() {
           <button 
             type="button" 
             onClick={handleExportJson}
-            className="p-1.5 bg-snip-surface border border-snip-ink rounded shadow-[1px_1px_0px_#131B2E] text-snip-ink hover:bg-snip-muted"
+            className="p-1.5 bg-snip-surface dark:bg-slate-800 border border-snip-ink dark:border-slate-500 rounded shadow-[1px_1px_0px_#131B2E] dark:shadow-none text-snip-ink dark:text-slate-200 hover:bg-snip-muted dark:hover:bg-slate-700 cursor-pointer"
             title="Ekspor Cadangan JSON"
           >
             <Download className="w-3.5 h-3.5" />
@@ -99,7 +100,7 @@ export function FilterToolbar() {
           <button 
             type="button" 
             onClick={handleExportCsv}
-            className="p-1.5 bg-snip-surface border border-snip-ink rounded shadow-[1px_1px_0px_#131B2E] text-snip-ink hover:bg-snip-muted"
+            className="p-1.5 bg-snip-surface dark:bg-slate-800 border border-snip-ink dark:border-slate-500 rounded shadow-[1px_1px_0px_#131B2E] dark:shadow-none text-snip-ink dark:text-slate-200 hover:bg-snip-muted dark:hover:bg-slate-700 cursor-pointer"
             title="Ekspor Laporan CSV"
           >
             <span className="text-[9px] font-extrabold px-0.5">CSV</span>
@@ -107,7 +108,7 @@ export function FilterToolbar() {
           <button 
             type="button" 
             onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 bg-snip-surface border border-snip-ink rounded shadow-[1px_1px_0px_#131B2E] text-snip-ink hover:bg-snip-muted"
+            className="p-1.5 bg-snip-surface dark:bg-slate-800 border border-snip-ink dark:border-slate-500 rounded shadow-[1px_1px_0px_#131B2E] dark:shadow-none text-snip-ink dark:text-slate-200 hover:bg-snip-muted dark:hover:bg-slate-700 cursor-pointer"
             title="Pulihkan dari Berkas JSON"
           >
             <Upload className="w-3.5 h-3.5" />

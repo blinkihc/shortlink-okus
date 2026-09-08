@@ -22,16 +22,16 @@ export function LinksView({ onOpenQR }: LinksViewProps) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-xl font-extrabold text-snip-ink tracking-tight">Daftar Tautan & QR</h2>
-        <p className="text-xs text-slate-600 mt-0.5">Kelola riwayat tautan secara lokal di perangkatmu dan pantau performanya.</p>
+        <h2 className="text-xl font-extrabold text-snip-ink dark:text-white tracking-tight">Daftar Tautan & QR</h2>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Kelola riwayat tautan secara lokal di perangkatmu dan pantau performanya.</p>
       </div>
 
       <FilterToolbar />
 
       <div className="flex flex-col gap-2.5">
         {filteredLinks.length === 0 ? (
-          <div className="card-neo text-center py-8 text-slate-500">
-            <div className="text-sm font-extrabold text-snip-ink mb-1">Tautan Tidak Ditemukan</div>
+          <div className="card-neo text-center py-8 text-slate-500 dark:text-slate-400">
+            <div className="text-sm font-extrabold text-snip-ink dark:text-white mb-1">Tautan Tidak Ditemukan</div>
             <p className="text-xs">Coba ubah kata kunci pencarian atau ganti filter kategori.</p>
           </div>
         ) : (

@@ -77,7 +77,7 @@ export function App() {
   return (
     <div className="w-full max-w-[1200px] mx-auto flex flex-col items-center p-4 gap-4 transition-colors">
       {/* Top Controller Bar */}
-      <header className="w-full max-w-[420px] bg-snip-surface dark:bg-slate-900 border-2 border-snip-ink dark:border-slate-700 rounded-md p-2.5 shadow-neo dark:shadow-neo-dark flex items-center justify-between gap-2 text-snip-ink dark:text-slate-100">
+      <header className="w-full max-w-[420px] bg-snip-surface dark:bg-slate-900 border-2 border-snip-ink dark:border-slate-600 rounded-md p-2.5 shadow-neo dark:shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-2 text-snip-ink dark:text-slate-100">
         <div className="bg-snip-accent text-snip-ink text-[10px] font-extrabold px-2 py-0.5 rounded-sm border border-snip-ink tracking-wider">
           REACT 19 + BUN MVP
         </div>
@@ -88,7 +88,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => setIsInstallModalOpen(true)}
-            className="bg-snip-accent dark:bg-amber-500 border border-snip-ink rounded-sm px-2 py-1 text-[11px] font-extrabold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="bg-snip-accent dark:bg-amber-400 border border-snip-ink rounded-sm px-2 py-1 text-[11px] font-extrabold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Pasang Aplikasi PWA ke Layar Utama"
           >
             <Download className="w-3.5 h-3.5" />
@@ -97,7 +97,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => toggleTheme()}
-            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Ganti Mode Gelap/Terang"
           >
             {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
@@ -106,7 +106,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => setIsFullMode(!isFullMode)}
-            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Ganti Mode Tampilan"
           >
             <Smartphone className="w-3.5 h-3.5" />
@@ -115,7 +115,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => resetToDefault()}
-            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Reset Data ke Nilai Awal"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -126,7 +126,7 @@ export function App() {
 
       {/* Mobile Device Frame */}
       <main 
-        className={`w-full bg-snip-bg dark:bg-[#0B132B] border-3 border-snip-ink dark:border-slate-700 shadow-neo-deep dark:shadow-neo-dark flex flex-col overflow-hidden transition-all duration-200 ${
+        className={`w-full bg-snip-bg dark:bg-[#070D1E] border-3 border-snip-ink dark:border-slate-600 shadow-neo-deep dark:shadow-[6px_6px_0px_#000000] flex flex-col overflow-hidden transition-all duration-200 ${
           isFullMode 
             ? 'max-w-[640px] min-h-[90vh] rounded-lg' 
             : 'max-w-[420px] h-[860px] rounded-[36px]'
@@ -145,9 +145,9 @@ export function App() {
         </div>
 
         {/* Header Bar */}
-        <header className="bg-snip-surface dark:bg-slate-900 border-b-2 border-snip-ink dark:border-slate-700 px-4 py-3 flex items-center justify-between shrink-0">
+        <header className="bg-snip-surface dark:bg-slate-900 border-b-2 border-snip-ink dark:border-slate-600 px-4 py-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-snip-primary border-2 border-snip-ink dark:border-slate-700 rounded-sm shadow-[2px_2px_0px_#131B2E] flex items-center justify-center text-white">
+            <div className="w-8 h-8 bg-snip-primary border-2 border-snip-ink dark:border-slate-600 rounded-sm shadow-[2px_2px_0px_#131B2E] dark:shadow-[2px_2px_0px_#000000] flex items-center justify-center text-white">
               <LinkIcon className="w-4 h-4" strokeWidth={3} />
             </div>
             <span className="text-lg font-extrabold tracking-tight text-snip-ink dark:text-slate-100">SnipLink</span>
@@ -155,7 +155,7 @@ export function App() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => toggleTheme()}
-              className="w-7 h-7 bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded flex items-center justify-center text-snip-ink dark:text-slate-200 shadow-[1px_1px_0px_#131B2E] cursor-pointer"
+              className="w-7 h-7 bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded flex items-center justify-center text-snip-ink dark:text-slate-200 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000] cursor-pointer"
               title="Ganti Tema Gelap/Terang"
             >
               {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
@@ -173,13 +173,13 @@ export function App() {
             <div className="flex flex-col gap-3.5">
               {/* Clipboard Detected Banner */}
               {showClipboardBanner && (
-                <div className="bg-snip-accent border-2 border-snip-ink rounded-md p-2.5 shadow-neo flex items-center justify-between gap-2">
+                <div className="bg-snip-accent border-2 border-snip-ink dark:border-slate-600 rounded-md p-2.5 shadow-neo dark:shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <div className="w-7 h-7 bg-white border border-snip-ink rounded flex items-center justify-center shrink-0">
                       <Clipboard className="w-4 h-4 text-snip-ink" />
                     </div>
                     <div className="truncate">
-                      <div className="text-[10px] font-extrabold uppercase">Tautan di Clipboard</div>
+                      <div className="text-[10px] font-extrabold uppercase text-snip-ink">Tautan di Clipboard</div>
                       <div className="text-xs font-bold truncate text-snip-ink">https://shopee.co.id/flash-sale/diskon-spesial</div>
                     </div>
                   </div>
@@ -212,27 +212,27 @@ export function App() {
               {/* Quick Summary Stats Bar */}
               <div className="card-neo grid grid-cols-3 text-center p-3">
                 <div>
-                  <div className="text-xl font-extrabold text-snip-primary">{links.length}</div>
-                  <div className="text-[11px] font-bold text-slate-600">Tautan Aktif</div>
+                  <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{links.length}</div>
+                  <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Tautan Aktif</div>
                 </div>
-                <div className="border-x-2 border-snip-ink">
-                  <div className="text-xl font-extrabold text-snip-primary">{totalClicks.toLocaleString()}</div>
-                  <div className="text-[11px] font-bold text-slate-600">Total Klik</div>
+                <div className="border-x-2 border-snip-ink dark:border-slate-600">
+                  <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{totalClicks.toLocaleString()}</div>
+                  <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Total Klik</div>
                 </div>
                 <div>
-                  <div className="text-xl font-extrabold text-snip-primary">{totalScans.toLocaleString()}</div>
-                  <div className="text-[11px] font-bold text-slate-600">Scan QR</div>
+                  <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{totalScans.toLocaleString()}</div>
+                  <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Scan QR</div>
                 </div>
               </div>
 
               {/* Recent Links Section */}
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-extrabold text-snip-ink">Tautan Terbaru</h3>
+                  <h3 className="text-sm font-extrabold text-snip-ink dark:text-white">Tautan Terbaru</h3>
                   <button 
                     type="button" 
                     onClick={() => setActiveTab('links')}
-                    className="text-xs font-bold text-snip-primary underline underline-offset-2"
+                    className="text-xs font-bold text-snip-primary dark:text-sky-400 underline underline-offset-2 cursor-pointer"
                   >
                     Lihat Semua
                   </button>
@@ -265,7 +265,7 @@ export function App() {
         </div>
 
         {/* Bottom Navigation Bar */}
-        <nav className="h-16 bg-snip-surface dark:bg-slate-900 border-t-2 border-snip-ink dark:border-slate-700 flex items-center justify-around px-2 shrink-0">
+        <nav className="h-16 bg-snip-surface dark:bg-slate-900 border-t-2 border-snip-ink dark:border-slate-600 flex items-center justify-around px-2 shrink-0">
           <button 
             type="button"
             onClick={() => setActiveTab('home')}
@@ -273,7 +273,7 @@ export function App() {
               activeTab === 'home' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'home' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E]' : ''}`}>
+            <div className={`p-1 rounded ${activeTab === 'home' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000]' : ''}`}>
               <Home className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-extrabold">Home</span>
@@ -286,7 +286,7 @@ export function App() {
               activeTab === 'qr' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'qr' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E]' : ''}`}>
+            <div className={`p-1 rounded ${activeTab === 'qr' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000]' : ''}`}>
               <QrCode className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-extrabold">QR Studio</span>
@@ -299,7 +299,7 @@ export function App() {
               activeTab === 'links' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'links' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E]' : ''}`}>
+            <div className={`p-1 rounded ${activeTab === 'links' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000]' : ''}`}>
               <LinkIcon className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-extrabold">Tautan</span>
@@ -312,7 +312,7 @@ export function App() {
               activeTab === 'analytics' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'analytics' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E]' : ''}`}>
+            <div className={`p-1 rounded ${activeTab === 'analytics' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000]' : ''}`}>
               <BarChart3 className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-extrabold">Analitik</span>

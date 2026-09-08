@@ -30,14 +30,15 @@ export function UtmBuilderModal({ isOpen, onClose, onSave, initialConfig }: UtmB
   };
 
   return (
-    <div className="fixed inset-0 bg-snip-ink/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-snip-surface border-3 border-snip-ink rounded-lg shadow-neo-deep w-full max-w-[380px] p-4 flex flex-col gap-3">
-        <div className="flex items-center justify-between border-b-2 border-snip-ink pb-2">
-          <div className="font-extrabold text-sm text-snip-ink">Pembangun Parameter UTM</div>
+    <div className="fixed inset-0 bg-snip-ink/70 dark:bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div className="bg-snip-surface dark:bg-slate-900 border-3 border-snip-ink dark:border-slate-500 rounded-lg shadow-neo-deep dark:shadow-[6px_6px_0px_#000000] w-full max-w-[380px] p-4 flex flex-col gap-3">
+        <div className="flex items-center justify-between border-b-2 border-snip-ink dark:border-slate-700 pb-2">
+          <div className="font-extrabold text-sm text-snip-ink dark:text-white">Pembangun Parameter UTM</div>
           <button 
             type="button" 
             onClick={onClose}
-            className="p-1 text-snip-ink hover:bg-snip-muted rounded transition-colors"
+            className="p-1 text-snip-ink dark:text-slate-200 hover:bg-snip-muted dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            title="Tutup Modal"
           >
             <X className="w-4 h-4" />
           </button>
@@ -45,7 +46,7 @@ export function UtmBuilderModal({ isOpen, onClose, onSave, initialConfig }: UtmB
 
         <div className="flex flex-col gap-2.5 text-xs">
           <div>
-            <label className="font-bold block mb-1">UTM Source (Sumber Kampanye)</label>
+            <label className="font-bold block mb-1 text-snip-ink dark:text-slate-200">UTM Source (Sumber Kampanye)</label>
             <input 
               type="text" 
               value={source} 
@@ -56,7 +57,7 @@ export function UtmBuilderModal({ isOpen, onClose, onSave, initialConfig }: UtmB
           </div>
 
           <div>
-            <label className="font-bold block mb-1">UTM Medium (Media Tautan)</label>
+            <label className="font-bold block mb-1 text-snip-ink dark:text-slate-200">UTM Medium (Media Tautan)</label>
             <input 
               type="text" 
               value={medium} 
@@ -67,7 +68,7 @@ export function UtmBuilderModal({ isOpen, onClose, onSave, initialConfig }: UtmB
           </div>
 
           <div>
-            <label className="font-bold block mb-1">UTM Campaign (Nama Kampanye)</label>
+            <label className="font-bold block mb-1 text-snip-ink dark:text-slate-200">UTM Campaign (Nama Kampanye)</label>
             <input 
               type="text" 
               value={campaign} 
@@ -79,7 +80,7 @@ export function UtmBuilderModal({ isOpen, onClose, onSave, initialConfig }: UtmB
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="font-bold block mb-1">UTM Term (Opsional)</label>
+              <label className="font-bold block mb-1 text-snip-ink dark:text-slate-200">UTM Term (Opsional)</label>
               <input 
                 type="text" 
                 value={term} 
@@ -89,7 +90,7 @@ export function UtmBuilderModal({ isOpen, onClose, onSave, initialConfig }: UtmB
               />
             </div>
             <div>
-              <label className="font-bold block mb-1">UTM Content (Opsional)</label>
+              <label className="font-bold block mb-1 text-snip-ink dark:text-slate-200">UTM Content (Opsional)</label>
               <input 
                 type="text" 
                 value={content} 
@@ -101,11 +102,11 @@ export function UtmBuilderModal({ isOpen, onClose, onSave, initialConfig }: UtmB
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2 border-t-2 border-snip-ink">
-          <button type="button" onClick={onClose} className="btn-neo-surface btn-neo-sm">
+        <div className="flex justify-end gap-2 pt-2 border-t-2 border-snip-ink dark:border-slate-700">
+          <button type="button" onClick={onClose} className="btn-neo-surface btn-neo-sm cursor-pointer">
             Batal
           </button>
-          <button type="button" onClick={handleApply} className="btn-neo-primary btn-neo-sm">
+          <button type="button" onClick={handleApply} className="btn-neo-primary btn-neo-sm cursor-pointer">
             <Check className="w-3.5 h-3.5" />
             <span>Terapkan UTM</span>
           </button>

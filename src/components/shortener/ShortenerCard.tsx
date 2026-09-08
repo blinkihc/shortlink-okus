@@ -65,16 +65,16 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
 
   return (
     <section className="card-neo">
-      <h2 className="text-lg font-extrabold tracking-tight mb-1 text-snip-ink">
+      <h2 className="text-lg font-extrabold tracking-tight mb-1 text-snip-ink dark:text-white">
         Pemendek Tautan Kilat
       </h2>
-      <p className="text-xs text-slate-600 mb-3.5">
+      <p className="text-xs text-slate-600 dark:text-slate-300 mb-3.5">
         Tempel URL panjang untuk membuat tautan ringkas dan kode QR instan.
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-extrabold uppercase text-snip-ink tracking-wider">
+          <label className="text-[11px] font-extrabold uppercase text-snip-ink dark:text-slate-200 tracking-wider">
             Tautan Asli (URL Panjang)
           </label>
           <div className="relative flex items-center">
@@ -89,7 +89,7 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
             <button 
               type="button" 
               onClick={handlePaste}
-              className="absolute right-2 p-1.5 bg-snip-muted border border-snip-ink rounded-sm text-snip-ink hover:bg-white transition-colors"
+              className="absolute right-2 p-1.5 bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-500 rounded-sm text-snip-ink dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-colors cursor-pointer"
               title="Tempel dari Clipboard"
             >
               <ClipboardPaste className="w-3.5 h-3.5" />
@@ -102,17 +102,19 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
           <button 
             type="button" 
             onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-            className="inline-flex items-center gap-1 text-xs font-bold text-snip-primary hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-bold text-snip-primary dark:text-sky-400 hover:underline cursor-pointer"
           >
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOptionsOpen ? 'rotate-180' : ''}`} />
             <span>Kustomisasi Slug, Kategori & PIN</span>
           </button>
 
           <button 
-            type="button"
+            type="button" 
             onClick={() => setIsUtmOpen(true)}
-            className={`text-[11px] font-extrabold px-2 py-1 rounded-sm border border-snip-ink flex items-center gap-1 ${
-              utmConfig ? 'bg-snip-accent text-snip-ink' : 'bg-snip-muted text-snip-ink'
+            className={`text-[11px] font-extrabold px-2 py-1 rounded-sm border flex items-center gap-1 cursor-pointer ${
+              utmConfig 
+                ? 'bg-snip-accent text-snip-ink border-snip-ink' 
+                : 'bg-snip-muted dark:bg-slate-800 text-snip-ink dark:text-slate-200 border-snip-ink dark:border-slate-500'
             }`}
           >
             <Tag className="w-3 h-3" />
@@ -122,11 +124,11 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
 
         {/* Collapsible Options Body */}
         {isOptionsOpen && (
-          <div className="bg-snip-muted border-2 border-snip-ink rounded-md p-3 flex flex-col gap-2.5">
+          <div className="bg-snip-muted dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-md p-3 flex flex-col gap-2.5">
             <div>
-              <label className="text-[11px] font-bold block mb-1">Alias Slug Tautan</label>
-              <div className="flex items-center border-2 border-snip-ink rounded-md bg-white overflow-hidden shadow-neo-low">
-                <span className="bg-snip-ink text-white text-xs font-bold px-2.5 py-2 select-none">
+              <label className="text-[11px] font-bold block mb-1 text-snip-ink dark:text-slate-200">Alias Slug Tautan</label>
+              <div className="flex items-center border-2 border-snip-ink dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 overflow-hidden shadow-neo-low">
+                <span className="bg-snip-ink dark:bg-slate-800 text-white dark:text-slate-200 text-xs font-bold px-2.5 py-2 select-none border-r border-snip-ink dark:border-slate-600">
                   snip.link/
                 </span>
                 <input 
@@ -134,20 +136,20 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
                   value={customSlug}
                   onChange={e => setCustomSlug(e.target.value)}
                   placeholder="promo-kopi"
-                  className="w-full px-2.5 py-1.5 text-xs font-bold outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs font-bold outline-none bg-transparent text-snip-ink dark:text-white"
                   maxLength={30}
                 />
               </div>
-              <span className="text-[10px] text-slate-500 mt-1 block">Kosongkan untuk membuat kode 6 karakter acak otomatis.</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">Kosongkan untuk membuat kode 6 karakter acak otomatis.</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[11px] font-bold block mb-1">Kategori</label>
+                <label className="text-[11px] font-bold block mb-1 text-snip-ink dark:text-slate-200">Kategori</label>
                 <select 
                   value={category} 
                   onChange={e => setCategory(e.target.value as LinkCategory)}
-                  className="w-full bg-white border-2 border-snip-ink rounded-md px-2 py-1.5 text-xs font-bold shadow-neo-low outline-none"
+                  className="w-full bg-white dark:bg-slate-900 border-2 border-snip-ink dark:border-slate-600 rounded-md px-2 py-1.5 text-xs font-bold shadow-neo-low outline-none text-snip-ink dark:text-white cursor-pointer"
                 >
                   <option value="Promo">Promo & Diskon</option>
                   <option value="Sosial Media">Media Sosial</option>
@@ -157,7 +159,7 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
               </div>
 
               <div>
-                <label className="text-[11px] font-bold block mb-1">PIN Proteksi (Opsional)</label>
+                <label className="text-[11px] font-bold block mb-1 text-snip-ink dark:text-slate-200">PIN Proteksi (Opsional)</label>
                 <div className="flex items-center relative">
                   <input 
                     type="password"
@@ -165,7 +167,7 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
                     value={pinCode}
                     onChange={e => setPinCode(e.target.value.replace(/\D/g, ''))}
                     placeholder="4 Digit PIN"
-                    className="w-full bg-white border-2 border-snip-ink rounded-md px-2.5 py-1.5 text-xs font-bold shadow-neo-low outline-none"
+                    className="w-full bg-white dark:bg-slate-900 border-2 border-snip-ink dark:border-slate-600 rounded-md px-2.5 py-1.5 text-xs font-bold shadow-neo-low outline-none text-snip-ink dark:text-white"
                   />
                   <KeyRound className="w-3.5 h-3.5 text-slate-400 absolute right-2 pointer-events-none" />
                 </div>
@@ -175,7 +177,7 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
         )}
 
         {/* Submit Button */}
-        <button type="submit" className="btn-neo-primary w-full mt-1">
+        <button type="submit" className="btn-neo-primary w-full mt-1 cursor-pointer">
           <Scissors className="w-4 h-4" />
           <span>Potong Tautan Sekarang</span>
         </button>
