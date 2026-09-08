@@ -36,6 +36,13 @@
 - `src/utils/shareHelper.ts` - Utilitas lembar berbagi sistem operasi (Native Share API) dan fallback clipboard
 - `src/utils/backupHelper.ts` - Utilitas ekspor dan impor data riwayat ke format JSON/CSV
 - `src/utils/backupHelper.test.ts` - Pengujian unit serialisasi dan validasi data backup
+- `src/stores/useThemeStore.ts` - State management mode gelap/terang berbasis Zustand dengan persistensi localStorage
+- `src/stores/useThemeStore.test.ts` - Pengujian unit toggle tema dan sinkronisasi kelas DOM
+- `src/utils/pwaHelper.ts` - Utilitas deteksi perangkat mobile/tablet dan penangkap event beforeinstallprompt PWA
+- `src/utils/pwaHelper.test.ts` - Pengujian unit logika deteksi perangkat dan installer PWA
+- `src/components/common/InstallPromptModal.tsx` - Komponen modal instalasi otomatis untuk Android dan panduan Safari iOS
+- `public/manifest.json` - Web App Manifest PWA untuk instalasi ke layar utama
+- `public/sw.js` - Service Worker untuk kapabilitas caching luring (offline-first)
 
 ### Notes
 
@@ -100,8 +107,22 @@
   - [x] 6.4 Bangun visualisasi perbandingan sistem operasi pengguna (Android vs iOS)
   - [x] 6.5 Buat pengujian unit agregasi metrik analitik di `src/stores/useAnalyticsStore.test.ts`
 
-- [ ] 7.0 End-to-End Testing, Accessibility Audit, & Production Build Verification
-  - [ ] 7.1 Jalankan seluruh rangkaian tes unit dengan perintah `bun test` dan pastikan tingkat kelulusan 100%
-  - [ ] 7.2 Lakukan audit aksesibilitas antarmuka pengguna: navigasi keyboard, outline fokus kontras, dan rasio WCAG AA
-  - [ ] 7.3 Uji responsivitas pada berbagai resolusi layar ponsel (360px, 414px, dan mode layar penuh)
-  - [ ] 7.4 Eksekusi build produksi dengan perintah `bun run build` dan verifikasi kesiapan berkas statis
+- [x] 7.0 End-to-End Testing, Accessibility Audit, & Production Build Verification
+  - [x] 7.1 Jalankan seluruh rangkaian tes unit dengan perintah `bun test` dan pastikan tingkat kelulusan 100%
+  - [x] 7.2 Lakukan audit aksesibilitas antarmuka pengguna: navigasi keyboard, outline fokus kontras, dan rasio WCAG AA
+  - [x] 7.3 Uji responsivitas pada berbagai resolusi layar ponsel (360px, 414px, dan mode layar penuh)
+  - [x] 7.4 Eksekusi build produksi dengan perintah `bun run build` dan verifikasi kesiapan berkas statis
+
+- [x] 8.0 Dark Mode Neo-Pop Custom Theme Engine
+  - [x] 8.1 Konfigurasi `darkMode: 'class'` dan warna tema gelap Neo-Pop di `tailwind.config.js` & `src/index.css`
+  - [x] 8.2 Buat store `useThemeStore.ts` untuk mengelola state tema (`light` / `dark`) dengan sinkronisasi ke class `dark` pada elemen `<html>` dan `localStorage`
+  - [x] 8.3 Pasang saklar tema taktil (*tactile theme toggle*) pada Header dan sesuaikan kelas kartu, teks, dan tombol pada seluruh komponen
+  - [x] 8.4 Buat pengujian unit toggle tema dan sinkronisasi DOM di `src/stores/useThemeStore.test.ts`
+
+- [x] 9.0 Progressive Web App (PWA) & Mobile/Tablet Auto-Install Prompt
+  - [x] 9.1 Buat Web App Manifest (`public/manifest.json`) dengan konfigurasi standalone dan ikon Neo-Pop
+  - [x] 9.2 Buat Service Worker luring (`public/sw.js`) untuk caching aset statis dan daftarkan di `src/main.tsx`
+  - [x] 9.3 Buat utilitas deteksi perangkat mobile/tablet dan penangkap event `beforeinstallprompt` di `src/utils/pwaHelper.ts`
+  - [x] 9.4 Bangun modal dialog `InstallPromptModal.tsx` dengan auto-prompt di Android/Tablet dan kartu panduan visual untuk Apple iOS Safari
+  - [x] 9.5 Buat pengujian unit deteksi perangkat dan installer PWA di `src/utils/pwaHelper.test.ts`
+

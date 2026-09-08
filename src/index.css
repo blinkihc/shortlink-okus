@@ -6,8 +6,18 @@
 
 @layer base {
   body {
-    @apply font-sans bg-[#E8EEF9] text-snip-ink antialiased min-h-screen;
+    @apply font-sans bg-[#E8EEF9] text-snip-ink antialiased min-h-screen transition-colors duration-200;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  html.dark body {
+    @apply bg-[#070D1E] text-slate-100;
+  }
+
+  /* Aksesibilitas Navigasi Keyboard WCAG AA */
+  *:focus-visible {
+    outline: 3px solid #FEA619 !important;
+    outline-offset: 2px !important;
   }
 }
 
@@ -35,11 +45,49 @@
 
   /* Neo-Pop Card */
   .card-neo {
-    @apply bg-snip-surface border-2 border-snip-ink rounded-lg p-4 shadow-neo;
+    @apply bg-snip-surface border-2 border-snip-ink rounded-lg p-4 shadow-neo transition-colors;
   }
 
   /* Neo-Pop Input */
   .input-neo {
     @apply w-full bg-snip-bg border-2 border-snip-ink rounded-md px-3.5 py-2.5 text-sm font-semibold text-snip-ink outline-none shadow-neo-low focus:bg-white focus:border-snip-primary transition-colors;
+  }
+
+  /* Dark Mode Overrides for Neo-Pop Components */
+  html.dark .btn-neo {
+    border-color: #334155;
+  }
+
+  html.dark .btn-neo-primary,
+  html.dark .btn-neo-accent,
+  html.dark .btn-neo-surface {
+    box-shadow: 4px 4px 0px #030712;
+  }
+
+  html.dark .btn-neo-surface {
+    background-color: #1e293b;
+    color: #f8fafc;
+  }
+
+  html.dark .btn-neo-sm {
+    box-shadow: 2px 2px 0px #030712;
+  }
+
+  html.dark .card-neo {
+    background-color: #0f172a;
+    border-color: #334155;
+    box-shadow: 4px 4px 0px #030712;
+    color: #f8fafc;
+  }
+
+  html.dark .input-neo {
+    background-color: #1e293b;
+    border-color: #334155;
+    box-shadow: 2px 2px 0px #030712;
+    color: #f8fafc;
+  }
+
+  html.dark .input-neo:focus {
+    background-color: #334155;
   }
 }

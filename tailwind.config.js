@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -16,6 +17,15 @@ export default {
           surface: '#FFFFFF',
           bg: '#F4F6FD',
           muted: '#E2E7FF',
+          // Neo-Pop Dark Mode Tokens
+          dark: {
+            bg: '#0B132B',
+            surface: '#162238',
+            card: '#1C2844',
+            ink: '#F4F7FB',
+            border: '#2E3D5C',
+            muted: '#1F2C4A',
+          }
         }
       },
       boxShadow: {
@@ -23,6 +33,8 @@ export default {
         'neo': '4px 4px 0px #131B2E',
         'neo-deep': '6px 6px 0px #131B2E',
         'neo-press': '1px 1px 0px #131B2E',
+        'neo-dark': '4px 4px 0px #030712',
+        'neo-dark-low': '2px 2px 0px #030712',
       },
       borderWidth: {
         '2': '2px',

@@ -9,15 +9,20 @@ import {
   Sparkles,
   Clipboard,
   Check,
-  AlertCircle
+  AlertCircle,
+  Sun,
+  Moon,
+  Download
 } from 'lucide-react';
 import { useLinkStore } from './stores/useLinkStore';
+import { useThemeStore } from './stores/useThemeStore';
 import { ShortenerCard } from './components/shortener/ShortenerCard';
 import { ResultCard } from './components/shortener/ResultCard';
 import { QRStudioCanvas } from './components/qr/QRStudioCanvas';
 import { LinksView } from './components/links/LinksView';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { LinkItemCard } from './components/links/LinkItemCard';
+import { InstallPromptModal } from './components/common/InstallPromptModal';
 import type { LinkItem } from './types';
 
 export function App() {
@@ -33,13 +38,17 @@ export function App() {
     resetToDefault 
   } = useLinkStore();
 
+  const { theme, toggleTheme, initializeTheme } = useThemeStore();
+
   const [isFullMode, setIsFullMode] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<string>('09:41');
   const [createdResult, setCreatedResult] = useState<LinkItem | null>(null);
   const [showClipboardBanner, setShowClipboardBanner] = useState<boolean>(true);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     initializeStore();
+    initializeTheme();
 
     const updateTime = () => {
       const now = new Date();
@@ -50,7 +59,7 @@ export function App() {
     updateTime();
     const interval = setInterval(updateTime, 30000);
     return () => clearInterval(interval);
-  }, [initializeStore]);
+  }, [initializeStore, initializeTheme]);
 
   const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
   const totalScans = links.reduce((sum, l) => sum + l.scans, 0);
@@ -66,20 +75,38 @@ export function App() {
   };
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto flex flex-col items-center p-4 gap-4">
+    <div className="w-full max-w-[1200px] mx-auto flex flex-col items-center p-4 gap-4 transition-colors">
       {/* Top Controller Bar */}
-      <header className="w-full max-w-[420px] bg-snip-surface border-2 border-snip-ink rounded-md p-2.5 shadow-neo flex items-center justify-between gap-2">
+      <header className="w-full max-w-[420px] bg-snip-surface dark:bg-slate-900 border-2 border-snip-ink dark:border-slate-700 rounded-md p-2.5 shadow-neo dark:shadow-neo-dark flex items-center justify-between gap-2 text-snip-ink dark:text-slate-100">
         <div className="bg-snip-accent text-snip-ink text-[10px] font-extrabold px-2 py-0.5 rounded-sm border border-snip-ink tracking-wider">
           REACT 19 + BUN MVP
         </div>
-        <div className="text-xs font-bold text-snip-ink flex-1 truncate">
+        <div className="text-xs font-bold flex-1 truncate">
           SnipLink Mobile
         </div>
         <div className="flex gap-1.5">
           <button 
             type="button"
+            onClick={() => setIsInstallModalOpen(true)}
+            className="bg-snip-accent dark:bg-amber-500 border border-snip-ink rounded-sm px-2 py-1 text-[11px] font-extrabold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            title="Pasang Aplikasi PWA ke Layar Utama"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>PWA</span>
+          </button>
+          <button 
+            type="button"
+            onClick={() => toggleTheme()}
+            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            title="Ganti Mode Gelap/Terang"
+          >
+            {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
+            <span>{theme === 'dark' ? 'Terang' : 'Gelap'}</span>
+          </button>
+          <button 
+            type="button"
             onClick={() => setIsFullMode(!isFullMode)}
-            className="bg-snip-muted border border-snip-ink rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none"
+            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Ganti Mode Tampilan"
           >
             <Smartphone className="w-3.5 h-3.5" />
@@ -88,7 +115,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => resetToDefault()}
-            className="bg-snip-muted border border-snip-ink rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none"
+            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Reset Data ke Nilai Awal"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -99,17 +126,17 @@ export function App() {
 
       {/* Mobile Device Frame */}
       <main 
-        className={`w-full bg-snip-bg border-3 border-snip-ink shadow-neo-deep flex flex-col overflow-hidden transition-all duration-200 ${
+        className={`w-full bg-snip-bg dark:bg-[#0B132B] border-3 border-snip-ink dark:border-slate-700 shadow-neo-deep dark:shadow-neo-dark flex flex-col overflow-hidden transition-all duration-200 ${
           isFullMode 
             ? 'max-w-[640px] min-h-[90vh] rounded-lg' 
             : 'max-w-[420px] h-[860px] rounded-[36px]'
         }`}
       >
         {/* Status Bar */}
-        <div className="h-10 bg-snip-surface border-b border-snip-ink flex items-center justify-between px-4 text-xs font-bold select-none shrink-0">
+        <div className="h-10 bg-snip-surface dark:bg-slate-900 border-b border-snip-ink dark:border-slate-700 flex items-center justify-between px-4 text-xs font-bold text-snip-ink dark:text-slate-200 select-none shrink-0">
           <span>{currentTime}</span>
-          <div className="w-24 h-4 bg-snip-ink rounded-b-xl flex items-center justify-center">
-            <div className="w-2 h-2 bg-[#273142] rounded-full"></div>
+          <div className="w-24 h-4 bg-snip-ink dark:bg-slate-800 rounded-b-xl flex items-center justify-center">
+            <div className="w-2 h-2 bg-[#273142] dark:bg-slate-600 rounded-full"></div>
           </div>
           <div className="flex items-center gap-1 text-[10px]">
             <span>5G</span>
@@ -118,16 +145,25 @@ export function App() {
         </div>
 
         {/* Header Bar */}
-        <header className="bg-snip-surface border-b-2 border-snip-ink px-4 py-3 flex items-center justify-between shrink-0">
+        <header className="bg-snip-surface dark:bg-slate-900 border-b-2 border-snip-ink dark:border-slate-700 px-4 py-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-snip-primary border-2 border-snip-ink rounded-sm shadow-[2px_2px_0px_#131B2E] flex items-center justify-center text-white">
+            <div className="w-8 h-8 bg-snip-primary border-2 border-snip-ink dark:border-slate-700 rounded-sm shadow-[2px_2px_0px_#131B2E] flex items-center justify-center text-white">
               <LinkIcon className="w-4 h-4" strokeWidth={3} />
             </div>
-            <span className="text-lg font-extrabold tracking-tight text-snip-ink">SnipLink</span>
+            <span className="text-lg font-extrabold tracking-tight text-snip-ink dark:text-slate-100">SnipLink</span>
           </div>
-          <div className="bg-snip-muted border border-snip-ink rounded-sm px-2 py-0.5 text-[10px] font-extrabold text-snip-primary tracking-wider flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
-            <span>V1.0 MVP</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => toggleTheme()}
+              className="w-7 h-7 bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded flex items-center justify-center text-snip-ink dark:text-slate-200 shadow-[1px_1px_0px_#131B2E] cursor-pointer"
+              title="Ganti Tema Gelap/Terang"
+            >
+              {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
+            </button>
+            <div className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-0.5 text-[10px] font-extrabold text-snip-primary dark:text-sky-400 tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              <span>V1.0 MVP</span>
+            </div>
           </div>
         </header>
 
@@ -229,15 +265,15 @@ export function App() {
         </div>
 
         {/* Bottom Navigation Bar */}
-        <nav className="h-16 bg-snip-surface border-t-2 border-snip-ink flex items-center justify-around px-2 shrink-0">
+        <nav className="h-16 bg-snip-surface dark:bg-slate-900 border-t-2 border-snip-ink dark:border-slate-700 flex items-center justify-around px-2 shrink-0">
           <button 
             type="button"
             onClick={() => setActiveTab('home')}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors ${
-              activeTab === 'home' ? 'text-snip-primary' : 'text-slate-500'
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+              activeTab === 'home' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'home' ? 'bg-snip-muted border border-snip-ink shadow-[1px_1px_0px_#131B2E]' : ''}`}>
+            <div className={`p-1 rounded ${activeTab === 'home' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E]' : ''}`}>
               <Home className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-extrabold">Home</span>
@@ -246,11 +282,11 @@ export function App() {
           <button 
             type="button"
             onClick={() => setActiveTab('qr')}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors ${
-              activeTab === 'qr' ? 'text-snip-primary' : 'text-slate-500'
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+              activeTab === 'qr' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'qr' ? 'bg-snip-muted border border-snip-ink shadow-[1px_1px_0px_#131B2E]' : ''}`}>
+            <div className={`p-1 rounded ${activeTab === 'qr' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E]' : ''}`}>
               <QrCode className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-extrabold">QR Studio</span>
@@ -259,11 +295,11 @@ export function App() {
           <button 
             type="button"
             onClick={() => setActiveTab('links')}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors ${
-              activeTab === 'links' ? 'text-snip-primary' : 'text-slate-500'
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+              activeTab === 'links' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'links' ? 'bg-snip-muted border border-snip-ink shadow-[1px_1px_0px_#131B2E]' : ''}`}>
+            <div className={`p-1 rounded ${activeTab === 'links' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E]' : ''}`}>
               <LinkIcon className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-extrabold">Tautan</span>
@@ -272,11 +308,11 @@ export function App() {
           <button 
             type="button"
             onClick={() => setActiveTab('analytics')}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors ${
-              activeTab === 'analytics' ? 'text-snip-primary' : 'text-slate-500'
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+              activeTab === 'analytics' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'analytics' ? 'bg-snip-muted border border-snip-ink shadow-[1px_1px_0px_#131B2E]' : ''}`}>
+            <div className={`p-1 rounded ${activeTab === 'analytics' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E]' : ''}`}>
               <BarChart3 className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-extrabold">Analitik</span>
@@ -284,8 +320,8 @@ export function App() {
         </nav>
 
         {/* Phone Bottom Home Bar */}
-        <div className="h-5 bg-snip-surface flex items-center justify-center shrink-0">
-          <div className="w-32 h-1 bg-snip-ink rounded-full"></div>
+        <div className="h-5 bg-snip-surface dark:bg-slate-900 flex items-center justify-center shrink-0">
+          <div className="w-32 h-1 bg-snip-ink dark:bg-slate-700 rounded-full"></div>
         </div>
       </main>
 
@@ -300,6 +336,12 @@ export function App() {
           <span>{toastMessage}</span>
         </aside>
       )}
+
+      {/* Modal Dialog Pasang Aplikasi PWA */}
+      <InstallPromptModal 
+        isOpen={isInstallModalOpen} 
+        onClose={() => setIsInstallModalOpen(false)} 
+      />
     </div>
   );
 }
