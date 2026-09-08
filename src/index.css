@@ -19,6 +19,14 @@
     outline: 3px solid #FEA619 !important;
     outline-offset: 2px !important;
   }
+
+  /* Safe Area Insets untuk Mobile PWA Native */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
 }
 
 @layer components {

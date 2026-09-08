@@ -75,20 +75,20 @@ export function App() {
   };
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto flex flex-col items-center p-4 gap-4 transition-colors">
+    <div className="w-full max-w-[1200px] mx-auto flex flex-col items-center p-0 sm:p-4 gap-0 sm:gap-4 min-h-[100dvh] transition-colors overflow-x-hidden">
       {/* Top Controller Bar */}
-      <header className="w-full max-w-[420px] bg-snip-surface dark:bg-slate-900 border-2 border-snip-ink dark:border-slate-600 rounded-md p-2.5 shadow-neo dark:shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-2 text-snip-ink dark:text-slate-100">
-        <div className="bg-snip-accent text-snip-ink text-[10px] font-extrabold px-2 py-0.5 rounded-sm border border-snip-ink tracking-wider">
-          REACT 19 + BUN MVP
+      <header className="w-full max-w-[420px] bg-snip-surface dark:bg-slate-900 border-b-2 sm:border-2 border-snip-ink dark:border-slate-600 rounded-none sm:rounded-md p-2 sm:p-2.5 shadow-none sm:shadow-neo dark:shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-1 sm:gap-2 text-snip-ink dark:text-slate-100 shrink-0">
+        <div className="bg-snip-accent text-snip-ink text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-sm border border-snip-ink tracking-wider shrink-0">
+          REACT 19
         </div>
-        <div className="text-xs font-bold flex-1 truncate">
-          SnipLink Mobile
+        <div className="text-xs font-bold flex-1 truncate px-1">
+          SnipLink
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1 sm:gap-1.5 shrink-0">
           <button 
             type="button"
             onClick={() => setIsInstallModalOpen(true)}
-            className="bg-snip-accent dark:bg-amber-400 border border-snip-ink rounded-sm px-2 py-1 text-[11px] font-extrabold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="bg-snip-accent dark:bg-amber-400 border border-snip-ink rounded-sm px-1.5 sm:px-2 py-1 text-[11px] font-extrabold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Pasang Aplikasi PWA ke Layar Utama"
           >
             <Download className="w-3.5 h-3.5" />
@@ -97,16 +97,16 @@ export function App() {
           <button 
             type="button"
             onClick={() => toggleTheme()}
-            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-1.5 sm:px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Ganti Mode Gelap/Terang"
           >
             {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
-            <span>{theme === 'dark' ? 'Terang' : 'Gelap'}</span>
+            <span className="hidden xs:inline">{theme === 'dark' ? 'Terang' : 'Gelap'}</span>
           </button>
           <button 
             type="button"
             onClick={() => setIsFullMode(!isFullMode)}
-            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="hidden sm:inline-flex bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Ganti Mode Tampilan"
           >
             <Smartphone className="w-3.5 h-3.5" />
@@ -115,7 +115,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => resetToDefault()}
-            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-1.5 sm:px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
             title="Reset Data ke Nilai Awal"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -126,14 +126,14 @@ export function App() {
 
       {/* Mobile Device Frame */}
       <main 
-        className={`w-full bg-snip-bg dark:bg-[#070D1E] border-3 border-snip-ink dark:border-slate-600 shadow-neo-deep dark:shadow-[6px_6px_0px_#000000] flex flex-col overflow-hidden transition-all duration-200 ${
+        className={`w-full bg-snip-bg dark:bg-[#070D1E] flex flex-col overflow-hidden transition-all duration-200 ${
           isFullMode 
-            ? 'max-w-[640px] min-h-[90vh] rounded-lg' 
-            : 'max-w-[420px] h-[860px] rounded-[36px]'
+            ? 'max-w-[640px] min-h-[90vh] rounded-none sm:rounded-lg sm:border-3 sm:border-snip-ink sm:dark:border-slate-600 sm:shadow-neo-deep sm:dark:shadow-[6px_6px_0px_#000000]' 
+            : 'max-w-full sm:max-w-[420px] h-[calc(100dvh-46px)] sm:h-[860px] rounded-none sm:rounded-[36px] sm:border-3 sm:border-snip-ink sm:dark:border-slate-600 sm:shadow-neo-deep sm:dark:shadow-[6px_6px_0px_#000000]'
         }`}
       >
-        {/* Status Bar */}
-        <div className="h-10 bg-snip-surface dark:bg-slate-900 border-b border-snip-ink dark:border-slate-700 flex items-center justify-between px-4 text-xs font-bold text-snip-ink dark:text-slate-200 select-none shrink-0">
+        {/* Status Bar (Simulasi Desktop) */}
+        <div className="hidden sm:flex h-10 bg-snip-surface dark:bg-slate-900 border-b border-snip-ink dark:border-slate-700 items-center justify-between px-4 text-xs font-bold text-snip-ink dark:text-slate-200 select-none shrink-0">
           <span>{currentTime}</span>
           <div className="w-24 h-4 bg-snip-ink dark:bg-slate-800 rounded-b-xl flex items-center justify-center">
             <div className="w-2 h-2 bg-[#273142] dark:bg-slate-600 rounded-full"></div>
@@ -265,11 +265,11 @@ export function App() {
         </div>
 
         {/* Bottom Navigation Bar */}
-        <nav className="h-16 bg-snip-surface dark:bg-slate-900 border-t-2 border-snip-ink dark:border-slate-600 flex items-center justify-around px-2 shrink-0">
+        <nav className="h-16 bg-snip-surface dark:bg-slate-900 border-t-2 border-snip-ink dark:border-slate-600 flex items-center justify-around px-2 shrink-0 pb-safe">
           <button 
             type="button"
             onClick={() => setActiveTab('home')}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+            className={`min-w-[56px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded transition-transform cursor-pointer active:scale-95 ${
               activeTab === 'home' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
@@ -282,7 +282,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => setActiveTab('qr')}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+            className={`min-w-[56px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded transition-transform cursor-pointer active:scale-95 ${
               activeTab === 'qr' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
@@ -295,7 +295,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => setActiveTab('links')}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+            className={`min-w-[56px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded transition-transform cursor-pointer active:scale-95 ${
               activeTab === 'links' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
@@ -308,7 +308,7 @@ export function App() {
           <button 
             type="button"
             onClick={() => setActiveTab('analytics')}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded transition-colors cursor-pointer ${
+            className={`min-w-[56px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded transition-transform cursor-pointer active:scale-95 ${
               activeTab === 'analytics' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
@@ -319,8 +319,8 @@ export function App() {
           </button>
         </nav>
 
-        {/* Phone Bottom Home Bar */}
-        <div className="h-5 bg-snip-surface dark:bg-slate-900 flex items-center justify-center shrink-0">
+        {/* Phone Bottom Home Bar (Hanya ditampilkan pada simulasi desktop) */}
+        <div className="hidden sm:flex h-5 bg-snip-surface dark:bg-slate-900 items-center justify-center shrink-0">
           <div className="w-32 h-1 bg-snip-ink dark:bg-slate-700 rounded-full"></div>
         </div>
       </main>
