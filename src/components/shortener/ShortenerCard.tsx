@@ -5,6 +5,7 @@ import { useLinkStore } from '../../stores/useLinkStore';
 import { resolveSlug } from '../../utils/slugGenerator';
 import { isValidUrl, appendUtmParameters } from '../../utils/urlValidator';
 import { UtmBuilderModal } from './UtmBuilderModal';
+import { APP_CONFIG } from '../../config/appConfig';
 
 interface ShortenerCardProps {
   onCreated: (link: LinkItem) => void;
@@ -129,7 +130,7 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
               <label className="text-[11px] font-bold block mb-1 text-snip-ink dark:text-slate-200">Alias Slug Tautan</label>
               <div className="flex items-center border-2 border-snip-ink dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 overflow-hidden shadow-neo-low">
                 <span className="bg-snip-ink dark:bg-slate-800 text-white dark:text-slate-200 text-xs font-bold px-2.5 py-2 select-none border-r border-snip-ink dark:border-slate-600">
-                  snip.link/
+                  {APP_CONFIG.defaultDomain}/
                 </span>
                 <input 
                   type="text" 

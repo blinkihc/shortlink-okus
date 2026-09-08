@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { LinkItem, LinkCategory, QrStudioConfig } from '../types';
 import { INITIAL_SEED_LINKS, getDb } from '../db/indexedDb';
+import { APP_CONFIG } from '../config/appConfig';
 
 interface LinkStoreState {
   links: LinkItem[];
@@ -12,7 +13,6 @@ interface LinkStoreState {
   toastMessage: string | null;
   toastSuccess: boolean;
 
-  // Actions
   initializeStore: () => Promise<void>;
   addLink: (linkData: {
     originalUrl: string;
@@ -78,7 +78,7 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
       id: `link-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       originalUrl: data.originalUrl,
       shortSlug: data.shortSlug,
-      shortUrl: `https://snip.link/${data.shortSlug}`,
+      shortUrl: APP_CONFIG.formatShortUrl(data.shortSlug),
       category: data.category,
       isActive: true,
       isPinned: false,

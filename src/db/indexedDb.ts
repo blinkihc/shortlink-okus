@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type { LinkItem, ClickEvent } from '../types';
+import { APP_CONFIG } from '../config/appConfig';
 
 export class SnipLinkDatabase extends Dexie {
   links!: Table<LinkItem, string>;
@@ -14,7 +15,6 @@ export class SnipLinkDatabase extends Dexie {
   }
 }
 
-// Inisialisasi basis data jika di lingkungan browser yang mendukung IndexedDB
 let dbInstance: SnipLinkDatabase | null = null;
 
 export function getDb(): SnipLinkDatabase {
@@ -29,7 +29,7 @@ export const INITIAL_SEED_LINKS: LinkItem[] = [
     id: 'link-seed-1',
     originalUrl: 'https://tokopedia.com/kopikenangan/promo-senin-ceria',
     shortSlug: 'promo-kopi',
-    shortUrl: 'https://snip.link/promo-kopi',
+    shortUrl: APP_CONFIG.formatShortUrl('promo-kopi'),
     category: 'Promo',
     isActive: true,
     isPinned: true,
@@ -51,7 +51,7 @@ export const INITIAL_SEED_LINKS: LinkItem[] = [
     id: 'link-seed-2',
     originalUrl: 'https://instagram.com/rakacreative/portfolio',
     shortSlug: 'bio-creator',
-    shortUrl: 'https://snip.link/bio-creator',
+    shortUrl: APP_CONFIG.formatShortUrl('bio-creator'),
     category: 'Sosial Media',
     isActive: true,
     isPinned: false,
@@ -64,7 +64,7 @@ export const INITIAL_SEED_LINKS: LinkItem[] = [
     id: 'link-seed-3',
     originalUrl: 'https://cindycoffee.menu/standing-tent-qr',
     shortSlug: 'menu-resto',
-    shortUrl: 'https://snip.link/menu-resto',
+    shortUrl: APP_CONFIG.formatShortUrl('menu-resto'),
     category: 'Produk',
     isActive: true,
     isPinned: false,

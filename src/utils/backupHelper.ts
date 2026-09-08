@@ -1,4 +1,5 @@
 import type { LinkItem } from '../types';
+import { APP_CONFIG } from '../config/appConfig';
 
 export function exportLinksToJson(links: LinkItem[]): string {
   const payload = {
@@ -41,7 +42,7 @@ export function parseAndValidateJsonBackup(jsonString: string): { success: boole
           id: item.id,
           originalUrl: item.originalUrl,
           shortSlug: item.shortSlug,
-          shortUrl: item.shortUrl || `https://snip.link/${item.shortSlug}`,
+          shortUrl: item.shortUrl || APP_CONFIG.formatShortUrl(item.shortSlug),
           category: item.category,
           isActive: typeof item.isActive === 'boolean' ? item.isActive : true,
           isPinned: !!item.isPinned,

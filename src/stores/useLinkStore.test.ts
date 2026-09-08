@@ -20,7 +20,7 @@ describe("Zustand useLinkStore Tests", () => {
     });
 
     expect(newLink.shortSlug).toBe("flash-sale-99");
-    expect(newLink.shortUrl).toBe("https://snip.link/flash-sale-99");
+    expect(newLink.shortUrl).toBe("https://okus.me/flash-sale-99");
     expect(useLinkStore.getState().links.length).toBe(initialCount + 1);
   });
 

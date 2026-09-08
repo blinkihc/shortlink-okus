@@ -3,6 +3,7 @@ import { Download, FileCode, Camera, Check, Link as LinkIcon } from 'lucide-reac
 import { useLinkStore } from '../../stores/useLinkStore';
 import { renderQRToCanvas, downloadCanvasAsPng, generateQRSvgString, downloadSvgString } from '../../utils/qrGenerator';
 import { calculateContrastAgainstWhite } from '../../utils/contrastChecker';
+import { APP_CONFIG } from '../../config/appConfig';
 import { QRScannerModal } from './QRScannerModal';
 import type { QRModuleStyle, QRFrameType } from '../../types';
 
@@ -120,7 +121,7 @@ export function QRStudioCanvas() {
           <input 
             type="text" 
             value={qrActiveUrl} 
-            onChange={e => setQrActiveUrl(e.target.value.trim() || 'https://snip.link')}
+            onChange={e => setQrActiveUrl(e.target.value.trim() || APP_CONFIG.baseUrl)}
             placeholder="https://..."
             className="input-neo text-xs"
           />

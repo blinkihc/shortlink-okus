@@ -1,8 +1,9 @@
 import QRCode from 'qrcode';
 import type { QrStudioConfig } from '../types';
+import { APP_CONFIG } from '../config/appConfig';
 
 export function getQRMatrix(text: string, ecLevel: 'L' | 'M' | 'Q' | 'H' = 'H'): number[][] {
-  const cleanText = text.trim() || 'https://snip.link';
+  const cleanText = text.trim() || APP_CONFIG.baseUrl;
   try {
     const qr = QRCode.create(cleanText, { errorCorrectionLevel: ecLevel });
     const size = qr.modules.size;
