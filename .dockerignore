@@ -1,0 +1,10 @@
+node_modules
+dist
+.git
+.tempmediaStorage
+docs
+tasks
+.env.local
+.env.development
+.oxlintrc.json
+README.md
