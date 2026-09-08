@@ -51,7 +51,7 @@ export const BarChart: React.FC<BarChartProps> = ({ data }) => {
               <div className="w-full max-w-[28px] h-full flex items-end gap-1">
                 {/* Batang Klik (Royal Blue) */}
                 <div
-                  className={`flex-1 bg-snip-primary border-t-2 border-x-2 border-snip-ink dark:border-slate-600 rounded-t-xs transition-all duration-300 relative ${
+                  className={`flex-1 bg-snip-primary border-t-2 border-x-2 border-snip-ink dark:border-slate-600 rounded-t-xs transition-all duration-300 animate-bar-grow relative ${
                     isSelected ? 'ring-2 ring-snip-ink dark:ring-white' : ''
                   }`}
                   style={{ height: `${clickPercent}%` }}
@@ -65,7 +65,7 @@ export const BarChart: React.FC<BarChartProps> = ({ data }) => {
 
                 {/* Batang Scan (Neo Coral) */}
                 <div
-                  className={`flex-1 bg-snip-danger border-t-2 border-x-2 border-snip-ink dark:border-slate-600 rounded-t-xs transition-all duration-300 relative ${
+                  className={`flex-1 bg-snip-danger border-t-2 border-x-2 border-snip-ink dark:border-slate-600 rounded-t-xs transition-all duration-300 animate-bar-grow relative ${
                     isSelected ? 'ring-2 ring-snip-ink dark:ring-white' : ''
                   }`}
                   style={{ height: `${scanPercent}%` }}

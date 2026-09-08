@@ -20,6 +20,7 @@ Seluruh dokumentasi teknis, laporan perancangan, panduan implementasi, dan stand
 | **Product Requirement Document (PRD)** | Spesifikasi kebutuhan fungsional dan non-fungsional aplikasi SnipLink. | [`prd_sniplink.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/prd_sniplink.md) |
 | **Tech Stack & ERD** | Rincian tumpukan teknologi, pustaka pihak ketiga, dan skema basis data Dexie IndexedDB. | [`tech_stack_and_erd.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/tech_stack_and_erd.md) |
 | **UI/UX Style Guide** | Panduan visual Neo-Pop: palet warna, tipografi, bayangan pekat, dan standar tombol. | [`ui_ux_style_guide.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/ui_ux_style_guide.md) |
+| **Konsep Desain & Animasi Viewport** | Spesifikasi tata letak multi-viewport (Desktop, Tablet, Mobile) dan kurva animasi mikro bebas slop. | [`konsep_desain_dan_animasi_viewport.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/konsep_desain_dan_animasi_viewport.md) |
 | **Walkthrough Prototype** | Laporan verifikasi prototipe awal interaktif SnipLink. | [`walkthrough_prototype.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/walkthrough_prototype.md) |
 
 ---

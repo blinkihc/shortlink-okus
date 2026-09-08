@@ -4,9 +4,7 @@ import {
   QrCode, 
   BarChart3, 
   Home, 
-  Smartphone, 
   RotateCcw,
-  Sparkles,
   Clipboard,
   Check,
   AlertCircle,
@@ -40,25 +38,14 @@ export function App() {
 
   const { theme, toggleTheme, initializeTheme } = useThemeStore();
 
-  const [isFullMode, setIsFullMode] = useState<boolean>(false);
-  const [currentTime, setCurrentTime] = useState<string>('09:41');
   const [createdResult, setCreatedResult] = useState<LinkItem | null>(null);
   const [showClipboardBanner, setShowClipboardBanner] = useState<boolean>(true);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
 
   useEffect(() => {
     initializeStore();
     initializeTheme();
-
-    const updateTime = () => {
-      const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      setCurrentTime(`${h}:${m}`);
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 30000);
-    return () => clearInterval(interval);
   }, [initializeStore, initializeTheme]);
 
   const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
@@ -74,103 +61,101 @@ export function App() {
     showToast(`Tersalin ke clipboard: ${text}`);
   };
 
+  const handleConfirmReset = async () => {
+    await resetToDefault();
+    setShowResetConfirm(false);
+    showToast('Data berhasil direset ke nilai awal.');
+  };
+
   return (
-    <div className="w-full max-w-[1200px] mx-auto flex flex-col items-center p-0 sm:p-4 gap-0 sm:gap-4 min-h-[100dvh] transition-colors overflow-x-hidden">
-      {/* Top Controller Bar */}
-      <header className="w-full max-w-[420px] bg-snip-surface dark:bg-slate-900 border-b-2 sm:border-2 border-snip-ink dark:border-slate-600 rounded-none sm:rounded-md p-2 sm:p-2.5 shadow-none sm:shadow-neo dark:shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-1 sm:gap-2 text-snip-ink dark:text-slate-100 shrink-0">
-        <div className="bg-snip-accent text-snip-ink text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-sm border border-snip-ink tracking-wider shrink-0">
-          REACT 19
-        </div>
-        <div className="text-xs font-bold flex-1 truncate px-1">
-          SnipLink
-        </div>
-        <div className="flex gap-1 sm:gap-1.5 shrink-0">
-          <button 
-            type="button"
-            onClick={() => setIsInstallModalOpen(true)}
-            className="bg-snip-accent dark:bg-amber-400 border border-snip-ink rounded-sm px-1.5 sm:px-2 py-1 text-[11px] font-extrabold text-snip-ink inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
-            title="Pasang Aplikasi PWA ke Layar Utama"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>PWA</span>
-          </button>
-          <button 
-            type="button"
-            onClick={() => toggleTheme()}
-            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-1.5 sm:px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
-            title="Ganti Mode Gelap/Terang"
-          >
-            {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
-            <span className="hidden xs:inline">{theme === 'dark' ? 'Terang' : 'Gelap'}</span>
-          </button>
-          <button 
-            type="button"
-            onClick={() => setIsFullMode(!isFullMode)}
-            className="hidden sm:inline-flex bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
-            title="Ganti Mode Tampilan"
-          >
-            <Smartphone className="w-3.5 h-3.5" />
-            <span>{isFullMode ? 'Layar Penuh' : 'Mode HP'}</span>
-          </button>
-          <button 
-            type="button"
-            onClick={() => resetToDefault()}
-            className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-1.5 sm:px-2 py-1 text-[11px] font-bold text-snip-ink dark:text-slate-200 inline-flex items-center gap-1 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000] active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
-            title="Reset Data ke Nilai Awal"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Device Frame */}
-      <main 
-        className={`w-full bg-snip-bg dark:bg-[#070D1E] flex flex-col overflow-hidden transition-all duration-200 ${
-          isFullMode 
-            ? 'max-w-[640px] min-h-[90vh] rounded-none sm:rounded-lg sm:border-3 sm:border-snip-ink sm:dark:border-slate-600 sm:shadow-neo-deep sm:dark:shadow-[6px_6px_0px_#000000]' 
-            : 'max-w-full sm:max-w-[420px] h-[calc(100dvh-46px)] sm:h-[860px] rounded-none sm:rounded-[36px] sm:border-3 sm:border-snip-ink sm:dark:border-slate-600 sm:shadow-neo-deep sm:dark:shadow-[6px_6px_0px_#000000]'
-        }`}
-      >
-        {/* Status Bar (Simulasi Desktop) */}
-        <div className="hidden sm:flex h-10 bg-snip-surface dark:bg-slate-900 border-b border-snip-ink dark:border-slate-700 items-center justify-between px-4 text-xs font-bold text-snip-ink dark:text-slate-200 select-none shrink-0">
-          <span>{currentTime}</span>
-          <div className="w-24 h-4 bg-snip-ink dark:bg-slate-800 rounded-b-xl flex items-center justify-center">
-            <div className="w-2 h-2 bg-[#273142] dark:bg-slate-600 rounded-full"></div>
-          </div>
-          <div className="flex items-center gap-1 text-[10px]">
-            <span>5G</span>
-            <span>100%</span>
-          </div>
-        </div>
-
-        {/* Header Bar */}
-        <header className="bg-snip-surface dark:bg-slate-900 border-b-2 border-snip-ink dark:border-slate-600 px-4 py-3 flex items-center justify-between shrink-0">
+    <div className="w-full min-h-[100dvh] bg-[#E8EEF9] dark:bg-[#070D1E] flex items-center justify-center p-0 sm:p-4 md:p-6 transition-colors overflow-x-hidden">
+      {/* Kontainer Aplikasi Multi-Viewport (Desktop: Terpusat 480px, Tablet: 620px, Mobile: 100% Layar Penuh) */}
+      <main className="w-full sm:max-w-[620px] lg:max-w-[480px] h-[100dvh] sm:h-[88vh] sm:max-h-[860px] bg-snip-bg dark:bg-[#0B132B] flex flex-col overflow-hidden sm:rounded-2xl sm:border-3 sm:border-snip-ink sm:dark:border-slate-600 sm:shadow-neo-deep sm:dark:shadow-[8px_8px_0px_#000000] transition-all relative">
+        
+        {/* Header Resmi Aplikasi SnipLink */}
+        <header className="bg-snip-surface dark:bg-slate-900 border-b-2 border-snip-ink dark:border-slate-600 px-3.5 sm:px-4 py-3 flex items-center justify-between shrink-0 pt-safe z-10 select-none">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-snip-primary border-2 border-snip-ink dark:border-slate-600 rounded-sm shadow-[2px_2px_0px_#131B2E] dark:shadow-[2px_2px_0px_#000000] flex items-center justify-center text-white">
+            <div className="w-8 h-8 bg-snip-primary border-2 border-snip-ink dark:border-slate-600 rounded-md shadow-[2px_2px_0px_#131B2E] dark:shadow-[2px_2px_0px_#000000] flex items-center justify-center text-white shrink-0">
               <LinkIcon className="w-4 h-4" strokeWidth={3} />
             </div>
-            <span className="text-lg font-extrabold tracking-tight text-snip-ink dark:text-slate-100">SnipLink</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-base sm:text-lg font-extrabold tracking-tight text-snip-ink dark:text-slate-100">SnipLink</span>
+              <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-400 dark:border-emerald-600 text-[9px] font-extrabold px-1.5 py-0.5 rounded">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+                LIVE
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Kontrol Utama: PWA, Ganti Tema, & Reset Aman */}
+          <div className="flex items-center gap-1.5">
+            <button 
+              type="button"
+              onClick={() => setIsInstallModalOpen(true)}
+              className="bg-snip-accent hover:bg-amber-300 dark:bg-amber-400 dark:hover:bg-amber-300 border-2 border-snip-ink dark:border-slate-600 rounded-md px-2 py-1 text-[11px] font-extrabold text-snip-ink inline-flex items-center gap-1 shadow-neo-low dark:shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-transform cursor-pointer"
+              title="Pasang Aplikasi PWA ke Layar Utama"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>PWA</span>
+            </button>
+
             <button
+              type="button"
               onClick={() => toggleTheme()}
-              className="w-7 h-7 bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded flex items-center justify-center text-snip-ink dark:text-slate-200 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000] cursor-pointer"
+              className="w-8 h-8 bg-snip-muted dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-md flex items-center justify-center text-snip-ink dark:text-slate-200 shadow-neo-low dark:shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-transform cursor-pointer"
               title="Ganti Tema Gelap/Terang"
             >
-              {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-600" />}
             </button>
-            <div className="bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 rounded-sm px-2 py-0.5 text-[10px] font-extrabold text-snip-primary dark:text-sky-400 tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              <span>V1.0 MVP</span>
-            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowResetConfirm(true)}
+              className="w-8 h-8 bg-snip-muted dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-md flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-neo-low dark:shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-transform cursor-pointer"
+              title="Kembalikan data ke nilai awal"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
           </div>
         </header>
 
-        {/* Scrollable Content Viewport */}
-        <div id="screen-viewport" className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        {/* Modal Konfirmasi Reset Data */}
+        {showResetConfirm && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-slide-up">
+            <div className="bg-snip-surface dark:bg-slate-900 border-3 border-snip-ink dark:border-slate-500 rounded-xl p-4 w-full max-w-[320px] shadow-neo-deep dark:shadow-[6px_6px_0px_#000000] flex flex-col gap-3 text-snip-ink dark:text-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-400 flex items-center justify-center shrink-0">
+                  <RotateCcw className="w-4 h-4" />
+                </div>
+                <div className="font-extrabold text-sm">Reset Data Awal?</div>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Seluruh tautan dan log analitik akan dikembalikan ke data percontohan awal bawaan sistem.
+              </p>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowResetConfirm(false)}
+                  className="btn-neo-surface btn-neo-sm px-3 py-1.5"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmReset}
+                  className="btn-neo bg-snip-danger text-white btn-neo-sm px-3 py-1.5 rounded-md active:scale-95"
+                >
+                  Ya, Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Viewport Konten dengan Pengguliran Halus & Transisi Tab */}
+        <div id="screen-viewport" className="flex-1 overflow-y-auto p-3.5 sm:p-4 flex flex-col gap-4">
           {activeTab === 'home' && (
-            <div className="flex flex-col gap-3.5">
+            <div key="home-view" className="animate-fade-slide-up flex flex-col gap-3.5">
               {/* Clipboard Detected Banner */}
               {showClipboardBanner && (
                 <div className="bg-snip-accent border-2 border-snip-ink dark:border-slate-600 rounded-md p-2.5 shadow-neo dark:shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-2">
@@ -252,77 +237,78 @@ export function App() {
           )}
 
           {activeTab === 'qr' && (
-            <QRStudioCanvas />
+            <div key="qr-view" className="animate-fade-slide-up flex flex-col gap-3.5">
+              <QRStudioCanvas />
+            </div>
           )}
 
           {activeTab === 'links' && (
-            <LinksView onOpenQR={handleOpenQR} />
+            <div key="links-view" className="animate-fade-slide-up flex flex-col gap-3.5">
+              <LinksView onOpenQR={handleOpenQR} />
+            </div>
           )}
 
           {activeTab === 'analytics' && (
-            <AnalyticsView />
+            <div key="analytics-view" className="animate-fade-slide-up flex flex-col gap-3.5">
+              <AnalyticsView />
+            </div>
           )}
         </div>
 
-        {/* Bottom Navigation Bar */}
-        <nav className="h-16 bg-snip-surface dark:bg-slate-900 border-t-2 border-snip-ink dark:border-slate-600 flex items-center justify-around px-2 shrink-0 pb-safe">
+        {/* Bilah Navigasi Bawah Multi-Perangkat */}
+        <nav className="h-16 bg-snip-surface dark:bg-slate-900 border-t-2 border-snip-ink dark:border-slate-600 flex items-center justify-around px-2 shrink-0 pb-safe z-10">
           <button 
             type="button"
             onClick={() => setActiveTab('home')}
             className={`min-w-[56px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded transition-transform cursor-pointer active:scale-95 ${
-              activeTab === 'home' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
+              activeTab === 'home' ? 'text-snip-primary dark:text-sky-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 font-medium'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'home' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000]' : ''}`}>
-              <Home className="w-4 h-4" strokeWidth={2.5} />
+            <div className={`p-1 rounded transition-all ${activeTab === 'home' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000]' : ''}`}>
+              <Home className="w-4 h-4" strokeWidth={activeTab === 'home' ? 3 : 2} />
             </div>
-            <span className="text-[10px] font-extrabold">Home</span>
+            <span className="text-[10px]">Home</span>
           </button>
 
           <button 
             type="button"
             onClick={() => setActiveTab('qr')}
             className={`min-w-[56px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded transition-transform cursor-pointer active:scale-95 ${
-              activeTab === 'qr' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
+              activeTab === 'qr' ? 'text-snip-primary dark:text-sky-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 font-medium'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'qr' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000]' : ''}`}>
-              <QrCode className="w-4 h-4" strokeWidth={2.5} />
+            <div className={`p-1 rounded transition-all ${activeTab === 'qr' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000]' : ''}`}>
+              <QrCode className="w-4 h-4" strokeWidth={activeTab === 'qr' ? 3 : 2} />
             </div>
-            <span className="text-[10px] font-extrabold">QR Studio</span>
+            <span className="text-[10px]">QR Studio</span>
           </button>
 
           <button 
             type="button"
             onClick={() => setActiveTab('links')}
             className={`min-w-[56px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded transition-transform cursor-pointer active:scale-95 ${
-              activeTab === 'links' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
+              activeTab === 'links' ? 'text-snip-primary dark:text-sky-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 font-medium'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'links' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000]' : ''}`}>
-              <LinkIcon className="w-4 h-4" strokeWidth={2.5} />
+            <div className={`p-1 rounded transition-all ${activeTab === 'links' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000]' : ''}`}>
+              <LinkIcon className="w-4 h-4" strokeWidth={activeTab === 'links' ? 3 : 2} />
             </div>
-            <span className="text-[10px] font-extrabold">Tautan</span>
+            <span className="text-[10px]">Tautan</span>
           </button>
 
           <button 
             type="button"
             onClick={() => setActiveTab('analytics')}
             className={`min-w-[56px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded transition-transform cursor-pointer active:scale-95 ${
-              activeTab === 'analytics' ? 'text-snip-primary dark:text-sky-400' : 'text-slate-500 dark:text-slate-400'
+              activeTab === 'analytics' ? 'text-snip-primary dark:text-sky-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 font-medium'
             }`}
           >
-            <div className={`p-1 rounded ${activeTab === 'analytics' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1px_1px_0px_#131B2E] dark:shadow-[1px_1px_0px_#000000]' : ''}`}>
-              <BarChart3 className="w-4 h-4" strokeWidth={2.5} />
+            <div className={`p-1 rounded transition-all ${activeTab === 'analytics' ? 'bg-snip-muted dark:bg-slate-800 border border-snip-ink dark:border-slate-600 shadow-[1.5px_1.5px_0px_#131B2E] dark:shadow-[1.5px_1.5px_0px_#000000]' : ''}`}>
+              <BarChart3 className="w-4 h-4" strokeWidth={activeTab === 'analytics' ? 3 : 2} />
             </div>
-            <span className="text-[10px] font-extrabold">Analitik</span>
+            <span className="text-[10px]">Analitik</span>
           </button>
         </nav>
-
-        {/* Phone Bottom Home Bar (Hanya ditampilkan pada simulasi desktop) */}
-        <div className="hidden sm:flex h-5 bg-snip-surface dark:bg-slate-900 items-center justify-center shrink-0">
-          <div className="w-32 h-1 bg-snip-ink dark:bg-slate-700 rounded-full"></div>
-        </div>
       </main>
 
       {/* Floating Toast Notification */}

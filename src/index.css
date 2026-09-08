@@ -106,3 +106,60 @@
     border-color: #FEA619;
   }
 }
+
+@layer utilities {
+  /* Keyframes Animasi Mikro Bebas AI Slop */
+  @keyframes fadeSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes barGrow {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes pulseSubtle {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.65;
+      transform: scale(1.06);
+    }
+  }
+
+  .animate-fade-slide-up {
+    animation: fadeSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-bar-grow {
+    transform-origin: bottom;
+    animation: barGrow 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulseSubtle 2s infinite ease-in-out;
+  }
+}
+
+/* Aksesibilitas: Matikan Seluruh Animasi jika Pengguna Mengaktifkan Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

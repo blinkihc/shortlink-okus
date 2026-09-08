@@ -1,5 +1,5 @@
-// SnipLink PWA Service Worker (Offline-First Cache)
-const CACHE_NAME = 'sniplink-cache-v1';
+// SnipLink PWA Service Worker (Offline-First Cache v2)
+const CACHE_NAME = 'sniplink-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
