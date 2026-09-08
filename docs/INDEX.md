@@ -35,3 +35,5 @@ Seluruh dokumentasi teknis, laporan perancangan, panduan implementasi, dan stand
 | **Audit Anti-Slop Dark Mode** | Identifikasi kelemahan visual, kontras tipis, dan isu elemen menyatu pada tema gelap. | [`audit_antislop_darkmode.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/audit_antislop_darkmode.md) |
 | **Konsep Perbaikan Dark Mode** | Konsep pemulihan kontras tinggi dan isolasi warna matriks QR pada latar gelap. | [`konsep_perbaikan_darkmode_antislop.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/konsep_perbaikan_darkmode_antislop.md) |
 | **Laporan Refactoring Dark Mode** | Hasil eksekusi refactoring token CSS dan validasi visual bebas slop. | [`laporan_refactoring_darkmode.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_refactoring_darkmode.md) |
+| **Laporan Perbaikan Viewport Penuh** | Eliminasi bingkai mockup HP, penghapusan margin vertikal, dan pembersihan komentar antislop. | [`laporan_perbaikan_viewport_full_height.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_perbaikan_viewport_full_height.md) |
+

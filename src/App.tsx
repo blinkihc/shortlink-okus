@@ -68,11 +68,8 @@ export function App() {
   };
 
   return (
-    <div className="w-full min-h-[100dvh] bg-[#E8EEF9] dark:bg-[#070D1E] flex items-center justify-center p-0 sm:p-4 md:p-6 transition-colors overflow-x-hidden">
-      {/* Kontainer Aplikasi Multi-Viewport (Desktop: Terpusat 480px, Tablet: 620px, Mobile: 100% Layar Penuh) */}
-      <main className="w-full sm:max-w-[620px] lg:max-w-[480px] h-[100dvh] sm:h-[88vh] sm:max-h-[860px] bg-snip-bg dark:bg-[#0B132B] flex flex-col overflow-hidden sm:rounded-2xl sm:border-3 sm:border-snip-ink sm:dark:border-slate-600 sm:shadow-neo-deep sm:dark:shadow-[8px_8px_0px_#000000] transition-all relative">
-        
-        {/* Header Resmi Aplikasi SnipLink */}
+    <div className="w-full h-[100dvh] min-h-[100dvh] bg-[#E8EEF9] dark:bg-[#070D1E] flex justify-center p-0 m-0 overflow-hidden transition-colors">
+      <main className="w-full max-w-[480px] h-[100dvh] bg-snip-bg dark:bg-[#0B132B] flex flex-col overflow-hidden transition-colors relative">
         <header className="bg-snip-surface dark:bg-slate-900 border-b-2 border-snip-ink dark:border-slate-600 px-3.5 sm:px-4 py-3 flex items-center justify-between shrink-0 pt-safe z-10 select-none">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-snip-primary border-2 border-snip-ink dark:border-slate-600 rounded-md shadow-[2px_2px_0px_#131B2E] dark:shadow-[2px_2px_0px_#000000] flex items-center justify-center text-white shrink-0">
@@ -87,7 +84,6 @@ export function App() {
             </div>
           </div>
 
-          {/* Kontrol Utama: PWA, Ganti Tema, & Reset Aman */}
           <div className="flex items-center gap-1.5">
             <button 
               type="button"
@@ -119,7 +115,6 @@ export function App() {
           </div>
         </header>
 
-        {/* Modal Konfirmasi Reset Data */}
         {showResetConfirm && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-slide-up">
             <div className="bg-snip-surface dark:bg-slate-900 border-3 border-snip-ink dark:border-slate-500 rounded-xl p-4 w-full max-w-[320px] shadow-neo-deep dark:shadow-[6px_6px_0px_#000000] flex flex-col gap-3 text-snip-ink dark:text-slate-100">
@@ -152,11 +147,9 @@ export function App() {
           </div>
         )}
 
-        {/* Viewport Konten dengan Pengguliran Halus & Transisi Tab */}
         <div id="screen-viewport" className="flex-1 overflow-y-auto p-3.5 sm:p-4 flex flex-col gap-4">
           {activeTab === 'home' && (
             <div key="home-view" className="animate-fade-slide-up flex flex-col gap-3.5">
-              {/* Clipboard Detected Banner */}
               {showClipboardBanner && (
                 <div className="bg-snip-accent border-2 border-snip-ink dark:border-slate-600 rounded-md p-2.5 shadow-neo dark:shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 overflow-hidden">
@@ -181,10 +174,8 @@ export function App() {
                 </div>
               )}
 
-              {/* Master Shorten Form */}
               <ShortenerCard onCreated={link => setCreatedResult(link)} />
 
-              {/* Created Result Popup Card */}
               {createdResult && (
                 <ResultCard 
                   link={createdResult}
@@ -194,7 +185,6 @@ export function App() {
                 />
               )}
 
-              {/* Quick Summary Stats Bar */}
               <div className="card-neo grid grid-cols-3 text-center p-3">
                 <div>
                   <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{links.length}</div>
@@ -210,7 +200,6 @@ export function App() {
                 </div>
               </div>
 
-              {/* Recent Links Section */}
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-extrabold text-snip-ink dark:text-white">Tautan Terbaru</h3>
@@ -255,7 +244,6 @@ export function App() {
           )}
         </div>
 
-        {/* Bilah Navigasi Bawah Multi-Perangkat */}
         <nav className="h-16 bg-snip-surface dark:bg-slate-900 border-t-2 border-snip-ink dark:border-slate-600 flex items-center justify-around px-2 shrink-0 pb-safe z-10">
           <button 
             type="button"
@@ -311,7 +299,6 @@ export function App() {
         </nav>
       </main>
 
-      {/* Floating Toast Notification */}
       {toastMessage && (
         <aside className="fixed bottom-6 bg-snip-ink text-white border-2 border-white rounded-md shadow-neo-deep px-4 py-2.5 text-xs font-bold flex items-center gap-2 z-50 animate-bounce">
           {toastSuccess ? (
@@ -323,7 +310,6 @@ export function App() {
         </aside>
       )}
 
-      {/* Modal Dialog Pasang Aplikasi PWA */}
       <InstallPromptModal 
         isOpen={isInstallModalOpen} 
         onClose={() => setIsInstallModalOpen(false)} 
