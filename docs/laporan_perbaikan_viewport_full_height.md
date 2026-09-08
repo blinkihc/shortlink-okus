@@ -31,3 +31,15 @@ Dokumen ini mencatat eliminasi bingkai mockup telepon pintar, penghapusan margin
 | **Mobile** | 375 × 812 px | Menempel Puncak (y=0) | Menempel Dasar (y=812) | Tidak Ada | Lolos |
 | **Tablet** | 768 × 1024 px | Menempel Puncak (y=0) | Menempel Dasar (y=1024) | Tidak Ada | Lolos |
 | **Desktop** | 1280 × 800 px | Menempel Puncak (y=0) | Menempel Dasar (y=800) | Tidak Ada | Lolos |
+
+---
+
+## 4. Eliminasi Komponen Mockup & Tombol Reset
+Berdasarkan arahan pengguna, dua elemen non-esensial dihapus dari antarmuka:
+1. **Banner Deteksi Clipboard Kuning**:
+   * *Status sebelumnya*: Menampilkan tautan Shopee dummy statis (*hardcoded*).
+   * *Tindakan*: Dihapus sepenuhnya dari pohon komponen. Fitur penempelan URL asli kini sepenuhnya terpusat pada tombol *paste* bawaan di dalam kolom input pemendek tautan.
+2. **Tombol Reset Data Header (`RotateCcw`) & Modal Konfirmasi**:
+   * *Status sebelumnya*: Tombol di pojok kanan atas header untuk mereset Dexie IndexedDB ke data awal demo.
+   * *Tindakan*: Dihapus dari bilah header beserta modal dialog konfirmasinya agar header tampil ringkas, bersih, dan hanya fokus pada kontrol PWA serta tombol tema gelap/terang.
+

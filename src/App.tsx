@@ -4,13 +4,11 @@ import {
   QrCode, 
   BarChart3, 
   Home, 
-  RotateCcw,
-  Clipboard,
-  Check,
-  AlertCircle,
-  Sun,
-  Moon,
-  Download
+  Check, 
+  AlertCircle, 
+  Sun, 
+  Moon, 
+  Download 
 } from 'lucide-react';
 import { useLinkStore } from './stores/useLinkStore';
 import { useThemeStore } from './stores/useThemeStore';
@@ -32,16 +30,13 @@ export function App() {
     toastMessage, 
     toastSuccess, 
     showToast, 
-    initializeStore,
-    resetToDefault 
+    initializeStore 
   } = useLinkStore();
 
   const { theme, toggleTheme, initializeTheme } = useThemeStore();
 
   const [createdResult, setCreatedResult] = useState<LinkItem | null>(null);
-  const [showClipboardBanner, setShowClipboardBanner] = useState<boolean>(true);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
-  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
 
   useEffect(() => {
     initializeStore();
@@ -59,12 +54,6 @@ export function App() {
   const handleCopyLink = (text: string) => {
     navigator.clipboard?.writeText(text);
     showToast(`Tersalin ke clipboard: ${text}`);
-  };
-
-  const handleConfirmReset = async () => {
-    await resetToDefault();
-    setShowResetConfirm(false);
-    showToast('Data berhasil direset ke nilai awal.');
   };
 
   return (
@@ -103,77 +92,12 @@ export function App() {
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-600" />}
             </button>
-
-            <button
-              type="button"
-              onClick={() => setShowResetConfirm(true)}
-              className="w-8 h-8 bg-snip-muted dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-md flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-neo-low dark:shadow-[1.5px_1.5px_0px_#000000] active:scale-95 transition-transform cursor-pointer"
-              title="Kembalikan data ke nilai awal"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
           </div>
         </header>
-
-        {showResetConfirm && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-slide-up">
-            <div className="bg-snip-surface dark:bg-slate-900 border-3 border-snip-ink dark:border-slate-500 rounded-xl p-4 w-full max-w-[320px] shadow-neo-deep dark:shadow-[6px_6px_0px_#000000] flex flex-col gap-3 text-snip-ink dark:text-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-400 flex items-center justify-center shrink-0">
-                  <RotateCcw className="w-4 h-4" />
-                </div>
-                <div className="font-extrabold text-sm">Reset Data Awal?</div>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Seluruh tautan dan log analitik akan dikembalikan ke data percontohan awal bawaan sistem.
-              </p>
-              <div className="flex items-center justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowResetConfirm(false)}
-                  className="btn-neo-surface btn-neo-sm px-3 py-1.5"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmReset}
-                  className="btn-neo bg-snip-danger text-white btn-neo-sm px-3 py-1.5 rounded-md active:scale-95"
-                >
-                  Ya, Reset
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div id="screen-viewport" className="flex-1 overflow-y-auto p-3.5 sm:p-4 flex flex-col gap-4">
           {activeTab === 'home' && (
             <div key="home-view" className="animate-fade-slide-up flex flex-col gap-3.5">
-              {showClipboardBanner && (
-                <div className="bg-snip-accent border-2 border-snip-ink dark:border-slate-600 rounded-md p-2.5 shadow-neo dark:shadow-[4px_4px_0px_#000000] flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="w-7 h-7 bg-white border border-snip-ink rounded flex items-center justify-center shrink-0">
-                      <Clipboard className="w-4 h-4 text-snip-ink" />
-                    </div>
-                    <div className="truncate">
-                      <div className="text-[10px] font-extrabold uppercase text-snip-ink">Tautan di Clipboard</div>
-                      <div className="text-xs font-bold truncate text-snip-ink">https://shopee.co.id/flash-sale/diskon-spesial</div>
-                    </div>
-                  </div>
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setShowClipboardBanner(false);
-                      showToast('Tautan clipboard siap dipotong.');
-                    }}
-                    className="btn-neo-surface btn-neo-sm px-2 py-1 shrink-0"
-                  >
-                    Gunakan
-                  </button>
-                </div>
-              )}
-
               <ShortenerCard onCreated={link => setCreatedResult(link)} />
 
               {createdResult && (
