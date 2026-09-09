@@ -91,8 +91,8 @@ Untuk menerapkan ke VPS via Easypanel:
    * Sumber Kode (*Source*): GitHub `blinkihc/shortlink-okus` (branch `main`).
 2. **Pengaturan Build (*Build Tab*)**:
    * Metode Build: **Dockerfile**
-   * Dockerfile Path: `./Dockerfile`
-   * Port Layanan: **`8080`** *(Port 8080 digunakan untuk menghindari bentrok dengan port 3000 panel Easypanel)*
+   * File: `./Dockerfile`
+   * *Catatan: Kolom port tidak berada di tab ini saat menggunakan metode Dockerfile.*
 3. **Pengaturan Penyimpanan Persisten (*Volumes Tab*)**:
    * Klik **"+ Mount"** / **"Add Volume"**
    * **Host Path** (atau Volume Name): `sniplink_data`
@@ -105,5 +105,8 @@ Untuk menerapkan ke VPS via Easypanel:
    PORT=8080
    DATABASE_PATH=/app/data/sniplink.db
    ```
-5. **Domain (*Domains Tab*)**:
-   * Masukkan domain: `okus.me` (otomatis mendapatkan sertifikat SSL Let's Encrypt).
+5. **Domain & Port Routing (*Domains Tab*)**:
+   * Klik **"+ Add Domain"**
+   * **Domain**: `okus.me`
+   * **Path**: `/`
+   * **Port**: **`8080`** *(Traefik akan meneruskan traffic domain okus.me ke port 8080 kontainer)*

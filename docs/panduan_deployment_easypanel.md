@@ -80,13 +80,11 @@ Pastikan hal-hal berikut telah terpenuhi:
 ### Langkah 4: Konfigurasi Metode Build (Build Tab)
 1. Buka tab **"Build"**.
 2. Pada pilihan **Build Method**, pilih: **"Dockerfile"**.
-   - *Catatan teknis: Repositori telah dilengkapi `Dockerfile` multi-stage Bun Fullstack Runner.*
-3. Pastikan parameter konfigurasi:
-   - **Dockerfile Path**: `./Dockerfile`
-   - **Build Context**: `.`
-4. Di bagian **Port**, atur port layanan ke:
-   - **Port**: `8080`
-5. Simpan perubahan (*Save*).
+   - *Catatan teknis: Repositori telah dilengkapi `Dockerfile` multi-stage Bun Fullstack Runner yang otomatis mengekspos port 8080.*
+3. Pada kolom **File**, pastikan terisi:
+   - **File**: `./Dockerfile`
+4. Klik tombol **Save**.
+   - *Catatan: Pada mode Dockerfile, kolom Port tidak ada di tab Build karena port layanan diatur langsung pada tab **Domains**.*
 
 ---
 
