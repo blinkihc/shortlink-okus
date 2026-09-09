@@ -38,4 +38,5 @@ Seluruh dokumentasi teknis, laporan perancangan, panduan implementasi, dan stand
 | **Laporan Refactoring Dark Mode** | Hasil eksekusi refactoring token CSS dan validasi visual bebas slop. | [`laporan_refactoring_darkmode.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_refactoring_darkmode.md) |
 | **Laporan Perbaikan Viewport Penuh** | Eliminasi bingkai mockup HP, penghapusan margin vertikal, dan pembersihan komentar antislop. | [`laporan_perbaikan_viewport_full_height.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_perbaikan_viewport_full_height.md) |
 | **Laporan Pembersihan Analitik Riil** | Eliminasi metrik dummy, generator fiktif, tombol simulasi, dan penerapan statistik riil murni. | [`laporan_pembersihan_analitik_riil.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_pembersihan_analitik_riil.md) |
+| **Materi Iklan & Promosi (Before-After)** | Dokumentasi aset halaman HTML dan gambar JPEG materi promosi produk SnipLink. | [`materi_iklan_dan_promosi.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/materi_iklan_dan_promosi.md) |
 

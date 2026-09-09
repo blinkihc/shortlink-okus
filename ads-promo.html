@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnipLink (okus.me) — Promo Ads & Before-After</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --snip-primary: #0058BE;
+      --snip-primary-light: #EBF3FF;
+      --snip-accent: #FFC700;
+      --snip-danger: #FF4757;
+      --snip-danger-bg: #FFEAEB;
+      --snip-success: #00D084;
+      --snip-success-bg: #E6FAF2;
+      --snip-ink: #0B132B;
+      --snip-bg: #F6F8FC;
+      --snip-card-bg: #FFFFFF;
+      --snip-border: #0B132B;
+      --shadow-neo: 4px 4px 0px var(--snip-ink);
+      --shadow-neo-lg: 6px 6px 0px var(--snip-ink);
+      --shadow-neo-sm: 2px 2px 0px var(--snip-ink);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--snip-bg);
+      color: var(--snip-ink);
+      padding: 32px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .ad-container {
+      width: 100%;
+      max-width: 960px;
+      background: var(--snip-card-bg);
+      border: 3.5px solid var(--snip-border);
+      border-radius: 24px;
+      box-shadow: 10px 10px 0px var(--snip-ink);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Brand Ribbon */
+    .top-ribbon {
+      background: var(--snip-ink);
+      color: #FFFFFF;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3.5px solid var(--snip-border);
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--snip-primary);
+      border: 2px solid #FFFFFF;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 2px 2px 0px #FFFFFF;
+      font-size: 16px;
+    }
+
+    .domain-tag {
+      background: var(--snip-accent);
+      color: var(--snip-ink);
+      font-size: 12px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 2px solid #FFFFFF;
+      box-shadow: 2px 2px 0px #FFFFFF;
+    }
+
+    /* Header Section */
+    .header-hero {
+      padding: 40px 32px 28px;
+      text-align: center;
+      background: linear-gradient(180deg, #FFFFFF 0%, #F4F8FE 100%);
+      border-bottom: 3.5px solid var(--snip-border);
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--snip-accent);
+      border: 2px solid var(--snip-ink);
+      box-shadow: var(--shadow-neo-sm);
+      border-radius: 50px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+
+    .hero-title {
+      font-size: 34px;
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+      color: var(--snip-ink);
+      max-width: 820px;
+      margin: 0 auto 14px;
+    }
+
+    .hero-title span.highlight-blue {
+      color: var(--snip-primary);
+      text-decoration: underline wavy var(--snip-accent) 4px;
+    }
+
+    .hero-subtitle {
+      font-size: 15px;
+      font-weight: 600;
+      color: #4A5568;
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* BEFORE VS AFTER SECTION */
+    .section-comparison {
+      padding: 36px 32px;
+      background: #FFFFFF;
+      border-bottom: 3.5px solid var(--snip-border);
+    }
+
+    .section-headline {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .section-headline h3 {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+    }
+
+    .section-headline p {
+      font-size: 13px;
+      color: #64748B;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-title {
+        font-size: 26px;
+      }
+    }
+
+    /* Card Before */
+    .card-comparison {
+      border: 3px solid var(--snip-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-neo);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-before {
+      background: var(--snip-danger-bg);
+      border-color: #E02424;
+    }
+
+    .card-after {
+      background: var(--snip-success-bg);
+      border-color: #057A55;
+    }
+
+    .card-header-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px dashed rgba(0,0,0,0.15);
+      padding-bottom: 12px;
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 2px solid var(--snip-ink);
+      box-shadow: var(--shadow-neo-sm);
+    }
+
+    .card-before .status-badge {
+      background: var(--snip-danger);
+      color: #FFFFFF;
+    }
+
+    .card-after .status-badge {
+      background: var(--snip-success);
+      color: var(--snip-ink);
+    }
+
+    .point-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .point-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 2px solid var(--snip-ink);
+      box-shadow: 1.5px 1.5px 0px var(--snip-ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .card-before .point-icon {
+      background: #FEB2B2;
+      color: #9B1C1C;
+    }
+
+    .card-after .point-icon {
+      background: #BCF0DA;
+      color: #03543F;
+    }
+
+    .point-text h4 {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .point-text p {
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .sample-box {
+      border: 2px solid var(--snip-ink);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      word-break: break-all;
+      margin-top: 4px;
+    }
+
+    .card-before .sample-box {
+      background: #FFF5F5;
+      color: #C53030;
+      font-family: monospace;
+    }
+
+    .card-after .sample-box {
+      background: #FFFFFF;
+      color: var(--snip-primary);
+      font-family: monospace;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .qr-preview-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #FFFFFF;
+      border: 2px solid var(--snip-ink);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 4px;
+    }
+
+    .qr-mock-img {
+      width: 54px;
+      height: 54px;
+      border: 2px solid var(--snip-ink);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 10px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* FEATURES GRID */
+    .section-features {
+      padding: 36px 32px;
+      background: #F8FAFD;
+      border-bottom: 3.5px solid var(--snip-border);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-card {
+      background: #FFFFFF;
+      border: 2.5px solid var(--snip-border);
+      border-radius: 14px;
+      padding: 20px 16px;
+      box-shadow: var(--shadow-neo);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.15s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .feature-icon-badge {
+      width: 42px;
+      height: 42px;
+      border: 2px solid var(--snip-ink);
+      border-radius: 10px;
+      box-shadow: var(--shadow-neo-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .feature-card h4 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--snip-ink);
+    }
+
+    .feature-card p {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748B;
+      line-height: 1.5;
+    }
+
+    /* BOTTOM CTA SECTION */
+    .section-cta {
+      padding: 36px 32px;
+      background: var(--snip-primary);
+      color: #FFFFFF;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .section-cta {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    .cta-text h3 {
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .cta-text p {
+      font-size: 13px;
+      color: #D1E5FF;
+      font-weight: 600;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .btn-cta {
+      background: var(--snip-accent);
+      color: var(--snip-ink);
+      border: 2.5px solid var(--snip-ink);
+      box-shadow: 4px 4px 0px var(--snip-ink);
+      border-radius: 10px;
+      padding: 14px 24px;
+      font-size: 14px;
+      font-weight: 900;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .btn-cta:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px var(--snip-ink);
+    }
+
+    .btn-secondary {
+      background: #FFFFFF;
+      color: var(--snip-ink);
+    }
+
+    /* Footer Trust Bar */
+    .footer-trust {
+      background: var(--snip-ink);
+      color: #94A3B8;
+      padding: 12px 24px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      border-top: 2px solid rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ad-container" id="promo-banner">
+    
+    <!-- Top Brand Ribbon -->
+    <div class="top-ribbon">
+      <div class="brand-logo">
+        <div class="brand-icon">🔗</div>
+        <span>SnipLink</span>
+      </div>
+      <div class="domain-tag">RESMI DI OKUS.ME</div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="header-hero">
+      <div class="badge-pill">⚡ Upgrade Tautan & QR Bisnis Anda</div>
+      <h1 class="hero-title">
+        Tinggalkan Link Berantakan.<br>
+        Beralih ke <span class="highlight-blue">SnipLink & QR Neo-Pop</span> Siap Cetak!
+      </h1>
+      <p class="hero-subtitle">
+        Platform utilitas all-in-one: perpendek URL panjang dengan domain prestisius <strong>okus.me</strong>, kreasikan kode QR 300 DPI kustom, amankan tautan dengan PIN 4-digit, dan pantau trafik riil secara transparan.
+      </p>
+    </header>
+
+    <!-- BEFORE VS AFTER SECTION -->
+    <section class="section-comparison">
+      <div class="section-headline">
+        <h3>Perbandingan Nyata: Sebelum vs Sesudah</h3>
+        <p>Lihat perbedaan dramatis saat tautan promosi Anda ditata dengan standar profesional.</p>
+      </div>
+
+      <div class="comparison-grid">
+        
+        <!-- BEFORE CARD -->
+        <div class="card-comparison card-before">
+          <div class="card-header-status">
+            <span class="status-badge">❌ SEBELUM (METODE LAMA)</span>
+            <span style="font-size: 11px; font-weight: 800; color: #9B1C1C;">Rentan & Menurunkan Konversi</span>
+          </div>
+
+          <div class="point-item">
+            <div class="point-icon">✕</div>
+            <div class="point-text">
+              <h4>URL Panjang & Tampak Mencurigakan</h4>
+              <p>Tautan acak sepanjang 150+ karakter sering dianggap spam/phishing oleh calon pembeli.</p>
+              <div class="sample-box">
+                https://tokopedia.com/toko-kopi-jaya/promo-diskon-50?spm=2026.09.09&utm_source=wa&utm_campaign=flashsale_99_aff982931...
+              </div>
+            </div>
+          </div>
+
+          <div class="point-item">
+            <div class="point-icon">✕</div>
+            <div class="point-text">
+              <h4>Kode QR Hitam Putih Kaku</h4>
+              <p>Format 90-an tanpa identitas brand. Resolusi rendah sering buram saat dicetak di kemasan.</p>
+              <div class="qr-preview-box">
+                <div class="qr-mock-img" style="background:#E2E8F0; color:#475569;">
+                  QR JADUL
+                </div>
+                <span style="font-size: 11px; color: #64748B; font-weight: 600;">Piksel generik, tanpa logo, tanpa frame ajakan bertindak (CTA).</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="point-item">
+            <div class="point-icon">✕</div>
+            <div class="point-text">
+              <h4>Nol Keamanan & Analitik Buta</h4>
+              <p>Tidak ada proteksi akses rahasia. Anda tidak pernah tahu berapa orang yang benar-benar mengklik.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- AFTER CARD -->
+        <div class="card-comparison card-after">
+          <div class="card-header-status">
+            <span class="status-badge">✅ SESUDAH (DENGAN SNIPLINK)</span>
+            <span style="font-size: 11px; font-weight: 800; color: #03543F;">Elegan, Terpercaya & Siap Konversi</span>
+          </div>
+
+          <div class="point-item">
+            <div class="point-icon">✓</div>
+            <div class="point-text">
+              <h4>Tautan Bersih, Singkat & Berwibawa</h4>
+              <p>Domain resmi okus.me meningkatkan kepercayaan pelanggan hingga 85% lebih tinggi.</p>
+              <div class="sample-box">
+                <span>https://okus.me/promo-kopi</span>
+                <span style="color:#057A55; font-weight:900;">[SALIN]</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="point-item">
+            <div class="point-icon">✓</div>
+            <div class="point-text">
+              <h4>Playful QR Studio 300 DPI Siap Cetak</h4>
+              <p>Modul Squircle, 5 warna solid anti-kamuflase, frame stiker 'SCAN ME!', & sematan logo bisnis.</p>
+              <div class="qr-preview-box" style="border-color:#057A55;">
+                <div class="qr-mock-img" style="background:var(--snip-primary); color:#FFFFFF; border-color:var(--snip-ink);">
+                  SCAN ME!
+                </div>
+                <span style="font-size: 11px; color: #065F46; font-weight: 700;">Standar cetak tajam untuk standing banner, stiker cup, & brosur.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="point-item">
+            <div class="point-icon">✓</div>
+            <div class="point-text">
+              <h4>Proteksi PIN SHA-256 & Pulse Analytics</h4>
+              <p>Kunci tautan sensitif dengan 4-digit PIN. Pantau total klik, scan QR, kanal (WA/IG), & OS pengunjung riil.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 4 CORE FEATURES BENTO GRID -->
+    <section class="section-features">
+      <div class="section-headline">
+        <h3>Fitur Utama yang Memberi Anda Kendali Penuh</h3>
+        <p>Didesain untuk kecepatan, estetika Neo-Pop, dan keandalan operasional tingkat tinggi.</p>
+      </div>
+
+      <div class="features-grid">
+        
+        <div class="feature-card">
+          <div class="feature-icon-badge" style="background:#EBF3FF;">⚡</div>
+          <h4>Smart URL Shortener</h4>
+          <p>Potong link instan dengan kustomisasi alias slug dan pembangun parameter UTM kampanye rapi.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-badge" style="background:#FFF9DB;">🎨</div>
+          <h4>Playful QR Studio</h4>
+          <p>Rancang QR Neo-Pop artistik beresolusi tinggi 300 DPI lengkap dengan logo dan stiker CTA.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-badge" style="background:#FEE2E2;">🔒</div>
+          <h4>Proteksi PIN Keamanan</h4>
+          <p>Kunci tautan dokumen atau portofolio pribadi Anda dengan enkripsi PIN 4 digit standar SHA-256.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-badge" style="background:#D1FAE5;">📊</div>
+          <h4>Pulse Analytics Riil</h4>
+          <p>Metrik statistik 100% riil tanpa data dummy: pantau klik, scan, kanal rujukan, serta OS pengunjung.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- BOTTOM CTA BANNER -->
+    <footer class="section-cta">
+      <div class="cta-text">
+        <h3>Siap Upgrade Tautan & QR Bisnis Anda?</h3>
+        <p>Mulai sekarang di domain resmi <strong>okus.me</strong> — Cepat, aman, dan tanpa biaya langganan.</p>
+      </div>
+      <div class="cta-actions">
+        <a href="https://okus.me" target="_blank" class="btn-cta">
+          <span>Buka okus.me Sekarang</span>
+          <span>→</span>
+        </a>
+      </div>
+    </footer>
+
+    <!-- Trust Footer -->
+    <div class="footer-trust">
+      SnipLink & Playful QR Studio • Didukung React 19, TypeScript, Bun & SQLite Terpusat • Standar Aksesibilitas WCAG AA
+    </div>
+
+  </div>
+
+</body>
+</html>
