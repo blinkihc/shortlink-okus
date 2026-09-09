@@ -39,6 +39,7 @@ export interface UserProfile {
   role: UserRole;
   authProvider: 'local' | 'google';
   createdAt: string;
+  mustSetPassword?: boolean;
 }
 
 export interface LinkItem {

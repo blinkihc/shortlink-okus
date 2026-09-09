@@ -158,16 +158,21 @@ export function AuthModal() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-extrabold uppercase tracking-wide">Kata Sandi</label>
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-extrabold uppercase tracking-wide">Kata Sandi</label>
+              {authModalTab === 'login' && (
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">(Kosongkan jika aktivasi awal)</span>
+              )}
+            </div>
             <div className="relative flex items-center">
               <Lock className="w-4 h-4 absolute left-3 text-slate-400" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Minimal 6 karakter"
-                required
-                minLength={6}
+                placeholder={authModalTab === 'login' ? "Kata sandi (kosongkan jika aktivasi)" : "Minimal 6 karakter"}
+                required={authModalTab === 'register'}
+                minLength={authModalTab === 'register' ? 6 : undefined}
                 className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-lg text-xs font-semibold focus:outline-none focus:border-snip-primary"
               />
             </div>

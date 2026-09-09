@@ -8,6 +8,8 @@ describe('Zustand useAuthStore Tests', () => {
       isLoading: false,
       isAuthModalOpen: false,
       authModalTab: 'login',
+      isLogoutConfirmOpen: false,
+      mustSetPassword: false,
       guestToken: 'test-guest-token-123'
     });
   });
@@ -17,6 +19,7 @@ describe('Zustand useAuthStore Tests', () => {
     expect(state.user).toBeNull();
     expect(state.isAuthModalOpen).toBe(false);
     expect(state.authModalTab).toBe('login');
+    expect(state.mustSetPassword).toBe(false);
     expect(state.guestToken).toBe('test-guest-token-123');
   });
 

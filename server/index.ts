@@ -187,18 +187,30 @@ app.post('/api/auth/login', async (c) => {
     const password = String(body.password || '');
     const guestToken = body.guestToken ? String(body.guestToken).trim() : undefined;
 
-    if (!email || !password) {
-      return c.json({ success: false, message: 'Surel dan kata sandi wajib diisi.' }, 400);
+    if (!email) {
+      return c.json({ success: false, message: 'Alamat surel wajib diisi.' }, 400);
     }
 
     const user = userRepo.findByEmail(email);
-    if (!user || !user.password_hash) {
+    if (!user) {
       return c.json({ success: false, message: 'Kombinasi surel atau kata sandi salah.' }, 401);
     }
 
-    const isMatch = await Bun.password.verify(password, user.password_hash);
-    if (!isMatch) {
-      return c.json({ success: false, message: 'Kombinasi surel atau kata sandi salah.' }, 401);
+    // Periksa apakah akun belum memiliki kata sandi (misalnya admin inisialisasi awal)
+    const isUnsetPassword = user.password_hash === null || user.password_hash === '';
+    if (isUnsetPassword) {
+      // Jika akun belum bersandi, hanya izinkan jika kata sandi dikosongkan untuk aktivasi
+      if (password && password.trim() !== '') {
+        return c.json({ success: false, message: 'Akun ini belum memiliki kata sandi. Kosongkan kolom kata sandi untuk aktivasi awal.' }, 400);
+      }
+    } else {
+      if (!password) {
+        return c.json({ success: false, message: 'Kata sandi wajib diisi.' }, 400);
+      }
+      const isMatch = await Bun.password.verify(password, user.password_hash);
+      if (!isMatch) {
+        return c.json({ success: false, message: 'Kombinasi surel atau kata sandi salah.' }, 401);
+      }
     }
 
     // Klaim otomatis tautan tamu jika ada
@@ -226,7 +238,8 @@ app.post('/api/auth/login', async (c) => {
         avatarUrl: user.avatar_url,
         role: user.role,
         authProvider: user.auth_provider,
-        createdAt: user.created_at
+        createdAt: user.created_at,
+        mustSetPassword: isUnsetPassword
       },
       token
     }, 200);
@@ -301,6 +314,8 @@ app.get('/api/auth/me', async (c) => {
     return c.json({ success: false, user: null });
   }
 
+  const isUnsetPassword = user.password_hash === null || user.password_hash === '';
+
   return c.json({
     success: true,
     user: {
@@ -310,7 +325,8 @@ app.get('/api/auth/me', async (c) => {
       avatarUrl: user.avatar_url,
       role: user.role,
       authProvider: user.auth_provider,
-      createdAt: user.created_at
+      createdAt: user.created_at,
+      mustSetPassword: isUnsetPassword
     }
   });
 });
@@ -319,6 +335,47 @@ app.get('/api/auth/me', async (c) => {
 app.post('/api/auth/logout', (c) => {
   deleteCookie(c, COOKIE_NAME, { path: '/' });
   return c.json({ success: true, message: 'Berhasil keluar.' });
+});
+
+// 2f. Buat / Perbarui Kata Sandi Pengguna (Set Password)
+app.post('/api/auth/set-password', async (c) => {
+  try {
+    const user = await getSessionUser(c);
+    if (!user) {
+      return c.json({ success: false, message: 'Sesi autentikasi tidak valid atau telah berakhir.' }, 401);
+    }
+
+    const body = await c.req.json();
+    const newPassword = String(body.password || '');
+
+    if (!newPassword || newPassword.length < 6) {
+      return c.json({ success: false, message: 'Kata sandi baru minimal 6 karakter.' }, 400);
+    }
+
+    const passwordHash = await Bun.password.hash(newPassword, { algorithm: 'argon2id' });
+    const updated = userRepo.setPassword(user.id, passwordHash);
+
+    if (!updated) {
+      return c.json({ success: false, message: 'Gagal memperbarui kata sandi pengguna.' }, 500);
+    }
+
+    return c.json({
+      success: true,
+      message: 'Kata sandi baru berhasil disimpan.',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatar_url,
+        role: user.role,
+        authProvider: user.auth_provider,
+        createdAt: user.created_at,
+        mustSetPassword: false
+      }
+    });
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal menyimpan kata sandi.' }, 500);
+  }
 });
 
 // 2f. Klaim Tautan Tamu Manual

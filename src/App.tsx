@@ -22,6 +22,7 @@ import { LinkItemCard } from './components/links/LinkItemCard';
 import { InstallPromptModal } from './components/common/InstallPromptModal';
 import { AuthModal } from './components/auth/AuthModal';
 import { LogoutConfirmModal } from './components/auth/LogoutConfirmModal';
+import { SetPasswordModal } from './components/auth/SetPasswordModal';
 import { OnboardingHero } from './components/onboarding/OnboardingHero';
 import { ProfileDashboard } from './components/profile/ProfileDashboard';
 import type { LinkItem } from './types';
@@ -383,6 +384,7 @@ export function App() {
 
       <AuthModal />
       <LogoutConfirmModal />
+      <SetPasswordModal />
     </div>
   );
 }

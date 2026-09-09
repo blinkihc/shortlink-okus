@@ -70,18 +70,23 @@ Sistem autentikasi SnipLink beroperasi mandiri pada peladen Bun + Hono tanpa ket
 | `/api/auth/google` | `POST` | Publik | Integrasi masuk cepat via profil Google OAuth. |
 | `/api/auth/me` | `GET` | Cookie / Bearer | Mengambil profil pengguna yang sedang aktif. |
 | `/api/auth/logout` | `POST` | Sesi Aktif | Menghapus cookie `auth_token` untuk keluar sesi. |
+| `/api/auth/set-password` | `POST` | Sesi Aktif | Membuat atau memperbarui kata sandi baru akun (enkripsi Argon2id). |
 | `/api/links/claim` | `POST` | Sesi Aktif | Mengklaim kepemilikan tautan tamu ke akun pengguna yang sedang masuk. |
 
 ---
 
-## 5. Konfigurasi Kredensial Administrator & Keamanan Produksi
+## 5. Inisialisasi Akun Administrator & Alur Aktivasi Mandiri
 
-Untuk keamanan lingkungan produksi (*production security*), kredensial akun administrator dikelola melalui variabel lingkungan (*environment variable*):
-- **Surel Akun**: `admin@okus.me`
-- **Kata Sandi**: Dikonfigurasi melalui variabel lingkungan `ADMIN_PASSWORD` (misalnya pada panel Easypanel). Jika tidak disetel, nilai bawaan lokal digunakan untuk inisialisasi awal.
-- **Penyimpanan**: Kata sandi **TIDAK PERNAH** disimpan dalam bentuk teks biasa (*plain text*), melainkan dienkripsi menjadi hash menggunakan algoritma **Argon2id** (`Bun.password.hashSync`) pada tabel `users`.
+Akun administrator diperlakukan setara dengan pengguna sistem lainnya tanpa kata sandi statis bawaan:
+- **Akun Bawaan Basis Data**: `admin@okus.me` diinisialisasi pada tabel `users` dengan `role = 'admin'` dan `password_hash = NULL`.
+- **Aktivasi Pertama Kali**:
+  1. Administrator memasukkan email `admin@okus.me` dan mengosongkan kolom kata sandi pada formulir login.
+  2. Peladen memverifikasi bahwa akun belum bersandi, mengizinkan login sesi, dan menandai `mustSetPassword: true`.
+  3. Antarmuka segera menampilkan modal sembulan wajib (*non-dismissible modal*) untuk membuat kata sandi baru (minimal 6 karakter beserta konfirmasi).
+  4. Kata sandi baru dienkripsi menggunakan algoritma **Argon2id** (`Bun.password.hash`) ke tabel `users` via rute `POST /api/auth/set-password`.
+  5. Untuk login berikutnya, akun administrator wajib menggunakan kata sandi yang baru saja dibuat layaknya pengguna pendaftar umum.
 - **Kunci Rahasia JWT**: Disetel melalui variabel lingkungan `JWT_SECRET` pada peladen produksi.
-- **Pemisahan Berkas Lingkungan**: Berkas `.env` dan basis data SQLite persisten terdaftar pada `.gitignore` dan tidak boleh diunggah ke repositori publik.
+- **Pemisahan Berkas Lingkungan**: Berkas `.env` dan basis data SQLite persisten terdaftar pada `.gitignore` dan tidak diunggah ke repositori publik.
 
 
 ---

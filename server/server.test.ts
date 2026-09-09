@@ -229,6 +229,78 @@ describe('SnipLink Centralized Backend & Database Tests', () => {
       expect(body.user.email).toBe(testEmail);
     });
 
+    it('should allow admin first-login with empty password and require setting new password', async () => {
+      // Pastikan admin@okus.me disetel tanpa kata sandi awal
+      db.run('UPDATE users SET password_hash = NULL WHERE email = "admin@okus.me"');
+
+      // Login dengan kata sandi kosong
+      const loginRes = await app.fetch(new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'admin@okus.me',
+          password: ''
+        })
+      }));
+
+      expect(loginRes.status).toBe(200);
+      const loginBody = await loginRes.json();
+      expect(loginBody.success).toBe(true);
+      expect(loginBody.user.role).toBe('admin');
+      expect(loginBody.user.mustSetPassword).toBe(true);
+      const adminToken = loginBody.token;
+
+      // Coba set password baru kurang dari 6 karakter -> ditolak
+      const shortRes = await app.fetch(new Request('http://localhost/api/auth/set-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ password: '123' })
+      }));
+      expect(shortRes.status).toBe(400);
+
+      // Set password baru yang valid
+      const newAdminPassword = 'superAdminSecret2026';
+      const setRes = await app.fetch(new Request('http://localhost/api/auth/set-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ password: newAdminPassword })
+      }));
+      expect(setRes.status).toBe(200);
+      const setBody = await setRes.json();
+      expect(setBody.success).toBe(true);
+      expect(setBody.user.mustSetPassword).toBe(false);
+
+      // Login lagi tanpa kata sandi -> sekarang harus ditolak (400 atau 401)
+      const rejectedRes = await app.fetch(new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'admin@okus.me',
+          password: ''
+        })
+      }));
+      expect(rejectedRes.status).toBe(400);
+
+      // Login dengan kata sandi baru -> berhasil
+      const validLoginRes = await app.fetch(new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'admin@okus.me',
+          password: newAdminPassword
+        })
+      }));
+      expect(validLoginRes.status).toBe(200);
+      const validLoginBody = await validLoginRes.json();
+      expect(validLoginBody.user.mustSetPassword).toBe(false);
+    });
+
     it('should allow guest to create 1 link with 5 days expiry', async () => {
       const guestSlug = `guest-${Date.now()}`;
       const res = await app.fetch(new Request('http://localhost/api/links', {

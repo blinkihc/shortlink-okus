@@ -18,6 +18,8 @@ interface AuthState {
   isLogoutConfirmOpen: boolean;
   openLogoutConfirm: () => void;
   closeLogoutConfirm: () => void;
+  mustSetPassword: boolean;
+  setPassword: (newPassword: string) => Promise<{ success: boolean; message?: string }>;
 }
 
 function getStoredGuestToken(): string {
@@ -58,6 +60,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthModalOpen: false,
   authModalTab: 'login',
   isLogoutConfirmOpen: false,
+  mustSetPassword: false,
   guestToken: getStoredGuestToken(),
 
   initAuth: async () => {
@@ -71,14 +74,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (res.ok) {
         const parsed = await parseResponseSafe(res);
         if (parsed.success && parsed.data?.user) {
-          set({ user: parsed.data.user, isLoading: false });
+          set({ 
+            user: parsed.data.user, 
+            mustSetPassword: Boolean(parsed.data.user.mustSetPassword),
+            isLoading: false 
+          });
           return;
         }
       }
     } catch (err) {
       console.warn('Gagal memverifikasi sesi pengguna:', err);
     }
-    set({ user: null, isLoading: false });
+    set({ user: null, mustSetPassword: false, isLoading: false });
   },
 
   login: async (email, password) => {
@@ -101,7 +108,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, message: parsed.message || 'Gagal masuk akun.' };
       }
 
-      set({ user: parsed.data.user, isAuthModalOpen: false, isLoading: false });
+      set({ 
+        user: parsed.data.user, 
+        mustSetPassword: Boolean(parsed.data.user.mustSetPassword),
+        isAuthModalOpen: false, 
+        isLoading: false 
+      });
       return { success: true };
     } catch (err: any) {
       set({ isLoading: false });
@@ -179,7 +191,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         credentials: 'include'
       });
     } catch {}
-    set({ user: null });
+    set({ user: null, mustSetPassword: false });
+  },
+
+  setPassword: async (newPassword: string) => {
+    set({ isLoading: true });
+    try {
+      const res = await fetch('/api/auth/set-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ password: newPassword })
+      });
+
+      const parsed = await parseResponseSafe(res);
+      if (!parsed.success || !parsed.data?.user) {
+        set({ isLoading: false });
+        return { success: false, message: parsed.message || 'Gagal menyimpan kata sandi.' };
+      }
+
+      set({
+        user: parsed.data.user,
+        mustSetPassword: false,
+        isLoading: false
+      });
+      return { success: true };
+    } catch (err: any) {
+      set({ isLoading: false });
+      return { success: false, message: err.message || 'Koneksi ke peladen terputus.' };
+    }
   },
 
   openAuthModal: (tab = 'login') => {

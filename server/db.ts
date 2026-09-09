@@ -110,19 +110,15 @@ export function initDatabase() {
 }
 
 function seedDefaultAdmin() {
-  const adminRow = db.query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get() as { count: number };
-  if (adminRow.count === 0) {
+  const adminRow = db.query("SELECT * FROM users WHERE role = 'admin' LIMIT 1").get() as any;
+  if (!adminRow) {
     const now = new Date().toISOString();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'okusadmin123';
-    const hash = Bun.password.hashSync(adminPassword, { algorithm: 'argon2id' });
-
     db.run(`
       INSERT INTO users (id, email, password_hash, name, avatar_url, role, auth_provider, google_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, 'admin', 'local', NULL, ?, ?)
+      VALUES (?, ?, NULL, ?, ?, 'admin', 'local', NULL, ?, ?)
     `, [
       'usr-admin-ucup',
       'admin@okus.me',
-      hash,
       'Bang Ucup (Admin)',
       'https://api.dicebear.com/7.x/bottts/svg?seed=UcupAdmin',
       now,
@@ -294,6 +290,15 @@ export const userRepo = {
 
   getAllUsers: (): Omit<UserRecord, 'password_hash'>[] => {
     return db.query('SELECT id, email, name, avatar_url, role, auth_provider, google_id, created_at, updated_at FROM users ORDER BY created_at DESC').all() as any[];
+  },
+
+  setPassword: (id: string, passwordHash: string): boolean => {
+    const now = new Date().toISOString();
+    const result = db.run(
+      'UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?',
+      [passwordHash, now, id]
+    );
+    return result.changes > 0;
   }
 };
 
