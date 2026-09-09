@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, ShieldCheck, AlertCircle, KeyRound } from 'lucide-react';
+import { Lock, ShieldCheck, AlertCircle, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useLinkStore } from '../../stores/useLinkStore';
 
@@ -9,6 +9,8 @@ export function SetPasswordModal() {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Modal ini wajib dan terkunci: hanya muncul saat mustSetPassword bernilai true
@@ -78,9 +80,9 @@ export function SetPasswordModal() {
               Kata Sandi Baru
             </label>
             <div className="relative flex items-center">
-              <Lock className="w-4 h-4 absolute left-3 text-slate-400" />
+              <Lock className="w-4 h-4 absolute left-3 text-slate-400 pointer-events-none" />
               <input
-                type="password"
+                type={showNewPassword ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Minimal 6 karakter"
@@ -88,8 +90,17 @@ export function SetPasswordModal() {
                 minLength={6}
                 disabled={isLoading}
                 autoFocus
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-lg text-xs font-semibold focus:outline-none focus:border-snip-primary"
+                className="w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-lg text-xs font-semibold focus:outline-none focus:border-snip-primary"
               />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer rounded focus:outline-none"
+                title={showNewPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+                aria-label={showNewPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+              >
+                {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -98,17 +109,26 @@ export function SetPasswordModal() {
               Konfirmasi Kata Sandi
             </label>
             <div className="relative flex items-center">
-              <Lock className="w-4 h-4 absolute left-3 text-slate-400" />
+              <Lock className="w-4 h-4 absolute left-3 text-slate-400 pointer-events-none" />
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Ketik ulang kata sandi baru"
                 required
                 minLength={6}
                 disabled={isLoading}
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-lg text-xs font-semibold focus:outline-none focus:border-snip-primary"
+                className="w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-lg text-xs font-semibold focus:outline-none focus:border-snip-primary"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer rounded focus:outline-none"
+                title={showConfirmPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+                aria-label={showConfirmPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+              >
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 

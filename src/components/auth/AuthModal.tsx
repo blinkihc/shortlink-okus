@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, LogIn, UserPlus, ShieldAlert, Sparkles } from 'lucide-react';
+import { X, Lock, Mail, User, LogIn, UserPlus, ShieldAlert, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useLinkStore } from '../../stores/useLinkStore';
 
@@ -19,6 +19,7 @@ export function AuthModal() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -165,16 +166,25 @@ export function AuthModal() {
               )}
             </div>
             <div className="relative flex items-center">
-              <Lock className="w-4 h-4 absolute left-3 text-slate-400" />
+              <Lock className="w-4 h-4 absolute left-3 text-slate-400 pointer-events-none" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={authModalTab === 'login' ? "Kata sandi (kosongkan jika aktivasi)" : "Minimal 6 karakter"}
                 required={authModalTab === 'register'}
                 minLength={authModalTab === 'register' ? 6 : undefined}
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-lg text-xs font-semibold focus:outline-none focus:border-snip-primary"
+                className="w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-snip-ink dark:border-slate-600 rounded-lg text-xs font-semibold focus:outline-none focus:border-snip-primary"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2.5 p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer rounded focus:outline-none"
+                title={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+                aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
