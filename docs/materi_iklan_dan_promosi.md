@@ -8,9 +8,12 @@ Dokumen ini mendokumentasikan aset materi iklan promosi (*ads promotional banner
 
 | Format | Nama Berkas | Lokasi Berkas | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| **HTML** | `ads-promo.html` | [`ads-promo.html`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/ads-promo.html) | Halaman banner promosi interaktif dan responsif (Neo-Pop Utility) |
-| **JPEG** | `ads-promo.jpeg` | [`ads-promo.jpeg`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/ads-promo.jpeg) | Gambar resolusi tinggi siap pakai untuk materi feed, poster, & kampanye |
-| **Arsip Gambar** | `ads-promo.jpeg` | [`docs/screenshots/ads-promo.jpeg`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/screenshots/ads-promo.jpeg) | Salinan arsip gambar materi iklan di folder dokumentasi |
+| **HTML (Banner)** | `ads-promo.html` | [`ads-promo.html`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/ads-promo.html) | Halaman banner promosi interaktif dan responsif (Neo-Pop Utility) |
+| **HTML (Mockup)** | `mockup-handphone.html` | [`mockup-handphone.html`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/mockup-handphone.html) | Halaman showcase mockup perangkat smartphone interaktif |
+| **JPEG (Iklan Penuh)** | `ads-promo.jpeg` | [`ads-promo.jpeg`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/ads-promo.jpeg) | Gambar iklan lengkap (Hero, Before-After, Fitur, Mockup HP, CTA) |
+| **JPEG (Mockup Studio)** | `mockup-handphone.jpeg` | [`mockup-handphone.jpeg`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/mockup-handphone.jpeg) | Gambar mockup smartphone terisolasi dengan 4 callout fitur |
+| **JPEG (Lifestyle)** | `mockup-handphone-lifestyle.jpeg` | [`mockup-handphone-lifestyle.jpeg`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/mockup-handphone-lifestyle.jpeg) | Foto mockup realistis smartphone digenggam di tangan di cafe |
+| **Arsip Gambar** | `*.jpeg` | [`docs/screenshots/`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/screenshots/) | Salinan arsip seluruh gambar materi promosi |
 
 ---
 
@@ -34,5 +37,9 @@ Dokumen ini mendokumentasikan aset materi iklan promosi (*ads promotional banner
    - 🎨 **Playful QR Studio**: Cetak tajam 300 DPI, pilihan bentuk modul pixel, dan kustomisasi logo.
    - 🔒 **Proteksi PIN Keamanan**: Kunci akses tautan rahasia dengan PIN 4 digit.
    - 📊 **Pulse Analytics Riil**: Dasbor pelacakan metrik trafik 100% nyata (klik, scan, rujukan, OS).
-4. **Ajakan Bertindak (*Call To Action / CTA*)**:
+4. **Mockup Pengalaman Layar Handphone**:
+   - Mockup sasis smartphone modern beresolusi tinggi dengan Dynamic Island dan status bar.
+   - Penjelasan kapabilitas PWA (Progressive Web App): instalasi langsung ke Home Screen tanpa toko aplikasi, navigasi ramah jempol, dan fungsionalitas offline-first.
+5. **Ajakan Bertindak (*Call To Action / CTA*)**:
    - Tombol utama mengarahkan langsung ke `https://okus.me`.
+
