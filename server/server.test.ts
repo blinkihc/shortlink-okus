@@ -136,4 +136,26 @@ describe('SnipLink Centralized Backend & Database Tests', () => {
     expect(res.status).toBe(200);
     expect(linkRepo.getById(created.id, 'okus.me')).toBeNull();
   });
+
+  it('should fetch real analytics events via GET /api/events', async () => {
+    const res = await app.fetch(new Request('http://localhost/api/events'));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(Array.isArray(body.data)).toBe(true);
+  });
+
+  it('should reset all analytics to 0 via POST /api/analytics/reset', async () => {
+    const res = await app.fetch(new Request('http://localhost/api/analytics/reset', {
+      method: 'POST'
+    }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+
+    const summaryRes = await app.fetch(new Request('http://localhost/api/analytics'));
+    const summaryBody = await summaryRes.json();
+    expect(summaryBody.data.totalClicks).toBe(0);
+    expect(summaryBody.data.totalScans).toBe(0);
+  });
 });

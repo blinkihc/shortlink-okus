@@ -102,8 +102,8 @@ function seedInitialLinks() {
       $pin_code: null,
       $is_active: 1,
       $is_pinned: 1,
-      $clicks: 420,
-      $scans: 140,
+      $clicks: 0,
+      $scans: 0,
       $qr_config: JSON.stringify({
         moduleStyle: 'chunky',
         fgColor: '#0058BE',
@@ -124,8 +124,8 @@ function seedInitialLinks() {
       $pin_code: null,
       $is_active: 1,
       $is_pinned: 0,
-      $clicks: 610,
-      $scans: 210,
+      $clicks: 0,
+      $scans: 0,
       $qr_config: JSON.stringify({
         moduleStyle: 'squircle',
         fgColor: '#FF5733',
@@ -145,8 +145,8 @@ function seedInitialLinks() {
       $pin_code: null,
       $is_active: 1,
       $is_pinned: 0,
-      $clicks: 250,
-      $scans: 112,
+      $clicks: 0,
+      $scans: 0,
       $qr_config: JSON.stringify({
         moduleStyle: 'chunky',
         fgColor: '#00875A',
@@ -271,5 +271,37 @@ export const linkRepo = {
       referrers: referrerRows,
       os: osRows
     };
+  },
+
+  getEvents: () => {
+    const rows = db.query(`
+      SELECT id, link_id, event_type, timestamp, referrer, os 
+      FROM analytics_events 
+      ORDER BY timestamp DESC
+    `).all() as {
+      id: string;
+      link_id: string;
+      event_type: string;
+      timestamp: string;
+      referrer: string;
+      os: string;
+    }[];
+
+    return rows.map(r => ({
+      id: r.id,
+      linkId: r.link_id,
+      timestamp: r.timestamp,
+      referrer: r.referrer,
+      os: r.os,
+      isQrScan: r.event_type === 'qr_scan'
+    }));
+  },
+
+  resetAnalytics: () => {
+    db.transaction(() => {
+      db.run('UPDATE links SET clicks = 0, scans = 0');
+      db.run('DELETE FROM analytics_events');
+    })();
   }
 };
+

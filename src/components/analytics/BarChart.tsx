@@ -30,13 +30,20 @@ export const BarChart: React.FC<BarChartProps> = ({ data }) => {
 
       {/* Kanvas Grafik Batang Neo-Pop */}
       <div 
-        className="h-44 border-b-2 border-snip-ink dark:border-slate-600 flex items-end justify-between px-2 gap-2 pt-6 bg-slate-50/70 dark:bg-slate-800/80 rounded-t-lg"
+        className="h-44 border-b-2 border-snip-ink dark:border-slate-600 flex items-end justify-between px-2 gap-2 pt-6 bg-slate-50/70 dark:bg-slate-800/80 rounded-t-lg relative"
         role="region"
         aria-label="Grafik batang aktivitas 7 hari"
       >
+        {!data.some(d => d.clicks > 0 || d.scans > 0) && (
+          <div className="absolute inset-0 flex items-center justify-center p-4 text-center pointer-events-none">
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
+              Belum ada riwayat klik atau scan dalam 7 hari terakhir
+            </span>
+          </div>
+        )}
         {data.map((item) => {
-          const clickPercent = Math.max(Math.round((item.clicks / maxVal) * 100), 4);
-          const scanPercent = Math.max(Math.round((item.scans / maxVal) * 100), 4);
+          const clickPercent = item.clicks > 0 ? Math.max(Math.round((item.clicks / maxVal) * 100), 6) : 0;
+          const scanPercent = item.scans > 0 ? Math.max(Math.round((item.scans / maxVal) * 100), 6) : 0;
           const isSelected = activeDay?.dateStr === item.dateStr;
 
           return (
@@ -51,12 +58,12 @@ export const BarChart: React.FC<BarChartProps> = ({ data }) => {
               <div className="w-full max-w-[28px] h-full flex items-end gap-1">
                 {/* Batang Klik (Royal Blue) */}
                 <div
-                  className={`flex-1 bg-snip-primary border-t-2 border-x-2 border-snip-ink dark:border-slate-600 rounded-t-xs transition-all duration-300 animate-bar-grow relative ${
+                  className={`flex-1 bg-snip-primary ${item.clicks > 0 ? 'border-t-2 border-x-2 border-snip-ink dark:border-slate-600 rounded-t-xs' : 'opacity-0'} transition-all duration-300 relative ${
                     isSelected ? 'ring-2 ring-snip-ink dark:ring-white' : ''
                   }`}
                   style={{ height: `${clickPercent}%` }}
                 >
-                  {isSelected && (
+                  {isSelected && item.clicks > 0 && (
                     <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] font-extrabold text-snip-primary dark:text-sky-400">
                       {item.clicks}
                     </span>
@@ -65,12 +72,12 @@ export const BarChart: React.FC<BarChartProps> = ({ data }) => {
 
                 {/* Batang Scan (Neo Coral) */}
                 <div
-                  className={`flex-1 bg-snip-danger border-t-2 border-x-2 border-snip-ink dark:border-slate-600 rounded-t-xs transition-all duration-300 animate-bar-grow relative ${
+                  className={`flex-1 bg-snip-danger ${item.scans > 0 ? 'border-t-2 border-x-2 border-snip-ink dark:border-slate-600 rounded-t-xs' : 'opacity-0'} transition-all duration-300 relative ${
                     isSelected ? 'ring-2 ring-snip-ink dark:ring-white' : ''
                   }`}
                   style={{ height: `${scanPercent}%` }}
                 >
-                  {isSelected && (
+                  {isSelected && item.scans > 0 && (
                     <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] font-extrabold text-snip-danger dark:text-rose-400">
                       {item.scans}
                     </span>

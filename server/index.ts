@@ -147,6 +147,18 @@ app.get('/api/analytics', (c) => {
   return c.json({ success: true, data: summary });
 });
 
+// 6a. Endpoint REST API: Mengambil Daftar Event Analitik Riil
+app.get('/api/events', (c) => {
+  const events = linkRepo.getEvents();
+  return c.json({ success: true, count: events.length, data: events });
+});
+
+// 6b. Endpoint REST API: Reset Analitik ke Nol
+app.post('/api/analytics/reset', (c) => {
+  linkRepo.resetAnalytics();
+  return c.json({ success: true, message: 'Data analitik berhasil dibersihkan ke 0.' });
+});
+
 // 7. Endpoint Verifikasi PIN via Form POST
 app.post('/:slug/verify', async (c) => {
   const slug = c.req.param('slug');

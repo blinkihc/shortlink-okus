@@ -35,8 +35,8 @@ export const INITIAL_SEED_LINKS: LinkItem[] = [
     isPinned: true,
     createdAt: new Date(Date.now() - 7200000).toISOString(),
     updatedAt: new Date(Date.now() - 7200000).toISOString(),
-    clicks: 420,
-    scans: 140,
+    clicks: 0,
+    scans: 0,
     qrConfig: {
       moduleStyle: 'chunky',
       fgColor: '#0058BE',
@@ -57,8 +57,8 @@ export const INITIAL_SEED_LINKS: LinkItem[] = [
     isPinned: false,
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 86400000).toISOString(),
-    clicks: 610,
-    scans: 210
+    clicks: 0,
+    scans: 0
   },
   {
     id: 'link-seed-3',
@@ -70,7 +70,7 @@ export const INITIAL_SEED_LINKS: LinkItem[] = [
     isPinned: false,
     createdAt: new Date(Date.now() - 259200000).toISOString(),
     updatedAt: new Date(Date.now() - 259200000).toISOString(),
-    clicks: 250,
-    scans: 112
+    clicks: 0,
+    scans: 0
   }
 ];

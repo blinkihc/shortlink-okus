@@ -49,81 +49,51 @@ interface AnalyticsStoreState {
   getTotalMetrics: () => { totalClicks: number; totalScans: number; totalAll: number };
 }
 
-// Data awal realistis untuk 7 hari terakhir
+// Data awal kosong: statistik murni hanya merekam kunjungan riil
 export function generateSeedEvents(): ClickEvent[] {
-  const referrers: ClickEvent['referrer'][] = ['WhatsApp', 'Instagram', 'TikTok', 'Browser Langsung'];
-  const osList: ClickEvent['os'][] = ['Android', 'iOS', 'Desktop'];
-  const seedEvents: ClickEvent[] = [];
-  const now = Date.now();
-  const ONE_DAY_MS = 86400000;
-
-  // Distribusi jumlah event per hari mundur dari 6 hari lalu sampai hari ini
-  const dailyCounts = [
-    { dayOffset: 6, clicks: 55, scans: 25 },
-    { dayOffset: 5, clicks: 70, scans: 40 },
-    { dayOffset: 4, clicks: 85, scans: 50 },
-    { dayOffset: 3, clicks: 65, scans: 35 },
-    { dayOffset: 2, clicks: 90, scans: 60 },
-    { dayOffset: 1, clicks: 110, scans: 75 },
-    { dayOffset: 0, clicks: 80, scans: 45 },
-  ];
-
-  let idCounter = 1;
-  for (const item of dailyCounts) {
-    const targetDate = new Date(now - item.dayOffset * ONE_DAY_MS);
-    
-    // Generate Clicks
-    for (let i = 0; i < item.clicks; i++) {
-      const refIndex = (i % 10 < 5) ? 0 : (i % 10 < 8) ? 1 : (i % 10 < 9) ? 2 : 3;
-      const osIndex = (i % 10 < 6) ? 0 : 1; // 60% Android, 40% iOS
-      seedEvents.push({
-        id: `event-seed-${idCounter++}`,
-        linkId: 'link-seed-1',
-        timestamp: new Date(targetDate.getTime() + (i * 360000) % 86400000).toISOString(),
-        referrer: referrers[refIndex],
-        os: osList[osIndex],
-        isQrScan: false,
-      });
-    }
-
-    // Generate Scans
-    for (let j = 0; j < item.scans; j++) {
-      const refIndex = (j % 5 < 3) ? 0 : 1;
-      const osIndex = (j % 10 < 7) ? 0 : 1; // 70% Android, 30% iOS
-      seedEvents.push({
-        id: `event-seed-${idCounter++}`,
-        linkId: 'link-seed-2',
-        timestamp: new Date(targetDate.getTime() + (j * 400000) % 86400000).toISOString(),
-        referrer: referrers[refIndex],
-        os: osList[osIndex],
-        isQrScan: true,
-      });
-    }
-  }
-
-  return seedEvents;
+  return [];
 }
 
-const INITIAL_EVENTS = generateSeedEvents();
+export const INITIAL_EVENTS: ClickEvent[] = [];
 
 export const useAnalyticsStore = create<AnalyticsStoreState>((set, get) => ({
-  events: [...INITIAL_EVENTS],
+  events: [],
   isLoading: false,
 
   initializeAnalytics: async () => {
+    // 1. Ambil data analitik riil dari backend API terpusat jika tersedia
+    try {
+      const res = await fetch('/api/events');
+      if (res.ok) {
+        const body = await res.json();
+        if (body.success && Array.isArray(body.data)) {
+          set({ events: body.data });
+          // Sinkronisasi ke IndexedDB lokal untuk caching offline
+          if (typeof window !== 'undefined' && 'indexedDB' in window) {
+            try {
+              const db = getDb();
+              await db.events.clear();
+              if (body.data.length > 0) {
+                await db.events.bulkAdd(body.data);
+              }
+            } catch {}
+          }
+          return;
+        }
+      }
+    } catch {
+      // API tidak terjangkau (offline / dev mode lokal)
+    }
+
+    // 2. Fallback: baca dari IndexedDB lokal
     try {
       if (typeof window !== 'undefined' && 'indexedDB' in window) {
         const db = getDb();
         const stored = await db.events.toArray();
-        if (stored.length > 0) {
-          set({ events: stored });
-        } else {
-          await db.events.bulkAdd(INITIAL_EVENTS);
-          set({ events: [...INITIAL_EVENTS] });
-        }
+        set({ events: stored || [] });
       }
     } catch (err) {
-      console.warn('Gagal membaca event dari IndexedDB, memakai data memori:', err);
+      console.warn('Gagal membaca event dari IndexedDB:', err);
     }
   },
 

@@ -14,8 +14,8 @@
       shortUrl: 'https://snip.link/promo-kopi',
       origUrl: 'https://tokopedia.com/kopikenangan/promo-senin-ceria',
       category: 'Promo',
-      clicks: 420,
-      scans: 140,
+      clicks: 0,
+      scans: 0,
       pinned: true,
       createdAt: '2 jam yang lalu'
     },
@@ -25,8 +25,8 @@
       shortUrl: 'https://snip.link/bio-creator',
       origUrl: 'https://instagram.com/rakacreative/portfolio',
       category: 'Sosial Media',
-      clicks: 610,
-      scans: 210,
+      clicks: 0,
+      scans: 0,
       pinned: false,
       createdAt: 'Kemarin'
     },
@@ -36,8 +36,8 @@
       shortUrl: 'https://snip.link/menu-resto',
       origUrl: 'https://cindycoffee.menu/standing-tent-qr',
       category: 'Produk',
-      clicks: 250,
-      scans: 112,
+      clicks: 0,
+      scans: 0,
       pinned: false,
       createdAt: '3 hari lalu'
     }
