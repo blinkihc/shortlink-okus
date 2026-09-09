@@ -15,10 +15,10 @@ Aplikasi SnipLink telah beralih dari aplikasi sisi-klien murni (*client-isolated
        ┌────────────────────────┐
        │   Traefik / Easypanel  │  (Port 443 / SSL Otomatis)
        └───────────┬────────────┘
-                   │ Proxy internal ke Port 3000
+                   │ Proxy internal ke Port 8080
                    ▼
        ┌────────────────────────┐
-       │  Bun + Hono Container  │  (Port 3000)
+       │  Bun + Hono Container  │  (Port 8080)
        ├────────────────────────┤
        │ 1. Engine Redirect 302 │ ──> Mengalihkan publik & merekam analitik
        │ 2. REST API /api/*     │ ──> CRUD tautan & analitik
@@ -92,7 +92,7 @@ Untuk menerapkan ke VPS via Easypanel:
 2. **Pengaturan Build (*Build Tab*)**:
    * Metode Build: **Dockerfile**
    * Dockerfile Path: `./Dockerfile`
-   * Port Layanan: **`3000`** *(Ubah dari port 80 ke 3000)*
+   * Port Layanan: **`8080`** *(Port 8080 digunakan untuk menghindari bentrok dengan port 3000 panel Easypanel)*
 3. **Pengaturan Penyimpanan Persisten (*Volumes Tab*)**:
    * Klik **"+ Mount"** / **"Add Volume"**
    * **Host Path** (atau Volume Name): `sniplink_data`
@@ -102,7 +102,7 @@ Untuk menerapkan ke VPS via Easypanel:
    ```env
    VITE_APP_DOMAIN=okus.me
    VITE_APP_ENV=production
-   PORT=3000
+   PORT=8080
    DATABASE_PATH=/app/data/sniplink.db
    ```
 5. **Domain (*Domains Tab*)**:

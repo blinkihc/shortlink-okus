@@ -45,14 +45,14 @@ RUN mkdir -p /app/data && chown -R bun:bun /app
 
 # Konfigurasi variabel lingkungan produksi
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=8080
 ENV DATABASE_PATH=/app/data/sniplink.db
 
 # Jalankan dengan pengguna non-root
 USER bun
 
 # Ekspos port peladen HTTP terpadu
-EXPOSE 3000
+EXPOSE 8080
 
 # Jalankan peladen backend terpusat
 CMD ["bun", "server/index.ts"]

@@ -9,7 +9,7 @@ import { initDatabase, linkRepo } from './db';
 initDatabase();
 
 const app = new Hono();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 8080;
 const DOMAIN = process.env.VITE_APP_DOMAIN || 'okus.me';
 
 app.use('*', logger());

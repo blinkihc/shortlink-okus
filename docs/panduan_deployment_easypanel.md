@@ -80,23 +80,27 @@ Pastikan hal-hal berikut telah terpenuhi:
 ### Langkah 4: Konfigurasi Metode Build (Build Tab)
 1. Buka tab **"Build"**.
 2. Pada pilihan **Build Method**, pilih: **"Dockerfile"**.
-   - *Catatan teknis: Repositori telah dilengkapi `Dockerfile` multi-stage (Bun + Nginx Alpine) dan `nginx.conf` optimal.*
+   - *Catatan teknis: Repositori telah dilengkapi `Dockerfile` multi-stage Bun Fullstack Runner.*
 3. Pastikan parameter konfigurasi:
    - **Dockerfile Path**: `./Dockerfile`
    - **Build Context**: `.`
 4. Di bagian **Port**, atur port layanan ke:
-   - **Port**: `80`
+   - **Port**: `8080`
 5. Simpan perubahan (*Save*).
 
 ---
 
-### Langkah 5: Konfigurasi Variabel Lingkungan (Environment Tab)
-1. Buka tab **"Environment"**.
-2. Tambahkan variabel lingkungan produksi:
+### Langkah 5: Konfigurasi Variabel Lingkungan & Volume
+1. Buka tab **"Environment"**:
    ```env
    VITE_APP_DOMAIN=okus.me
    VITE_APP_ENV=production
+   PORT=8080
+   DATABASE_PATH=/app/data/sniplink.db
    ```
+2. Buka tab **"Volumes"**:
+   - Host Path / Volume Name: `sniplink_data`
+   - Mount Path: `/app/data`
 3. Simpan perubahan (*Save*).
 
 ---
@@ -107,7 +111,7 @@ Pastikan hal-hal berikut telah terpenuhi:
 3. Masukkan domain utama:
    - **Domain**: `okus.me`
    - **Path**: `/`
-   - **Port**: `80`
+   - **Port**: `8080`
 4. *(Opsional)* Tambahkan domain kedua jika ingin mendukung subdomain www:
    - **Domain**: `www.okus.me`
 5. Easypanel melalui Traefik akan secara otomatis memverifikasi DNS dan menerbitkan sertifikat SSL (*Secure Sockets Layer*) gratis dari Let's Encrypt.
