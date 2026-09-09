@@ -158,4 +158,154 @@ describe('SnipLink Centralized Backend & Database Tests', () => {
     expect(summaryBody.data.totalClicks).toBe(0);
     expect(summaryBody.data.totalScans).toBe(0);
   });
+
+  describe('Multi-User Auth & Guest Link Rules', () => {
+    const testEmail = `user-${Date.now()}@example.com`;
+    const testPassword = 'rahasiaPassword123';
+    let userToken = '';
+    const guestToken = `test-guest-${Date.now()}`;
+
+    it('should register a new user successfully via POST /api/auth/register', async () => {
+      const res = await app.fetch(new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+          name: 'Budi Santoso'
+        })
+      }));
+
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.user.email).toBe(testEmail);
+      expect(body.user.role).toBe('user');
+      expect(typeof body.token).toBe('string');
+      userToken = body.token;
+    });
+
+    it('should reject login with wrong password via POST /api/auth/login', async () => {
+      const res = await app.fetch(new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: testEmail,
+          password: 'wrongPassword'
+        })
+      }));
+
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+    });
+
+    it('should login successfully with correct password', async () => {
+      const res = await app.fetch(new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword
+        })
+      }));
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.user.name).toBe('Budi Santoso');
+    });
+
+    it('should fetch current user profile via GET /api/auth/me', async () => {
+      const res = await app.fetch(new Request('http://localhost/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${userToken}`
+        }
+      }));
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.user.email).toBe(testEmail);
+    });
+
+    it('should allow guest to create 1 link with 5 days expiry', async () => {
+      const guestSlug = `guest-${Date.now()}`;
+      const res = await app.fetch(new Request('http://localhost/api/links', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-guest-token': guestToken
+        },
+        body: JSON.stringify({
+          originalUrl: 'https://example.com/guest-link',
+          shortSlug: guestSlug,
+          category: 'Produk'
+        })
+      }));
+
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.shortSlug).toBe(guestSlug);
+      expect(body.data.expiresAt).toBeDefined();
+
+      // Validasi masa aktif sekitar 5 hari ke depan
+      const expiry = new Date(body.data.expiresAt).getTime();
+      const diffDays = (expiry - Date.now()) / (1000 * 60 * 60 * 24);
+      expect(diffDays).toBeGreaterThan(4.9);
+      expect(diffDays).toBeLessThanOrEqual(5.1);
+    });
+
+    it('should block guest from creating a 2nd link (403 Forbidden)', async () => {
+      const res = await app.fetch(new Request('http://localhost/api/links', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-guest-token': guestToken
+        },
+        body: JSON.stringify({
+          originalUrl: 'https://example.com/guest-link-two',
+          shortSlug: `guest-two-${Date.now()}`,
+          category: 'Promo'
+        })
+      }));
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+      expect(body.message).toContain('1 tautan aktif');
+    });
+
+
+    it('should auto-claim guest link when registering with guestToken', async () => {
+      const claimEmail = `claim-${Date.now()}@example.com`;
+      const res = await app.fetch(new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: claimEmail,
+          password: 'claimPassword123',
+          name: 'Klaim User',
+          guestToken: guestToken
+        })
+      }));
+
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+
+      // Verifikasi bahwa tautan tamu tadi sudah menjadi milik pengguna baru dan expiresAt menjadi null
+      const userLinksRes = await app.fetch(new Request('http://localhost/api/links', {
+        headers: { 'Authorization': `Bearer ${body.token}` }
+      }));
+      const userLinks = await userLinksRes.json();
+      expect(userLinks.data.length).toBeGreaterThanOrEqual(1);
+      const claimed = userLinks.data.find((l: any) => l.guestToken === guestToken);
+      expect(claimed).toBeDefined();
+      expect(claimed.expiresAt).toBeUndefined();
+      expect(claimed.isClaimed).toBe(true);
+    });
+  });
 });
+

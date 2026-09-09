@@ -17,10 +17,44 @@ export const db = new Database(DB_PATH, { create: true });
 db.run('PRAGMA journal_mode = WAL;');
 db.run('PRAGMA synchronous = NORMAL;');
 
+export interface UserRecord {
+  id: string;
+  email: string;
+  password_hash: string | null;
+  name: string;
+  avatar_url: string | null;
+  role: 'admin' | 'user';
+  auth_provider: 'local' | 'google';
+  google_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export function initDatabase() {
+  // 1. Skema Tabel Pengguna (users)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT,
+      name TEXT NOT NULL,
+      avatar_url TEXT,
+      role TEXT NOT NULL DEFAULT 'user',
+      auth_provider TEXT NOT NULL DEFAULT 'local',
+      google_id TEXT UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+
+  // 2. Skema Tabel Tautan (links)
   db.run(`
     CREATE TABLE IF NOT EXISTS links (
       id TEXT PRIMARY KEY,
+      user_id TEXT,
+      guest_token TEXT,
+      is_claimed INTEGER NOT NULL DEFAULT 0,
+      expires_at TEXT,
       original_url TEXT NOT NULL,
       short_slug TEXT UNIQUE NOT NULL,
       category TEXT NOT NULL DEFAULT 'Promo',
@@ -31,10 +65,18 @@ export function initDatabase() {
       scans INTEGER NOT NULL DEFAULT 0,
       qr_config TEXT,
       created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
     );
   `);
 
+  // Migrasi aman untuk menambahkan kolom jika tabel links sudah dibuat sebelumnya
+  try { db.run('ALTER TABLE links ADD COLUMN user_id TEXT;'); } catch {}
+  try { db.run('ALTER TABLE links ADD COLUMN guest_token TEXT;'); } catch {}
+  try { db.run('ALTER TABLE links ADD COLUMN is_claimed INTEGER NOT NULL DEFAULT 0;'); } catch {}
+  try { db.run('ALTER TABLE links ADD COLUMN expires_at TEXT;'); } catch {}
+
+  // 3. Skema Tabel Analitik (analytics_events)
   db.run(`
     CREATE TABLE IF NOT EXISTS analytics_events (
       id TEXT PRIMARY KEY,
@@ -48,14 +90,44 @@ export function initDatabase() {
     );
   `);
 
+  // Indeks untuk performa kueri
+  db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_links_short_slug ON links(short_slug);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_links_user_id ON links(user_id);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_links_guest_token ON links(guest_token);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_links_expires_at ON links(expires_at);`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_analytics_link_id ON analytics_events(link_id);`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_analytics_timestamp ON analytics_events(timestamp);`);
+
+  // Buat akun Administrator default (Bang Ucup) jika belum ada
+  seedDefaultAdmin();
 
   // Periksa apakah tabel links masih kosong. Jika ya, masukkan data percontohan awal.
   const countRow = db.query('SELECT COUNT(*) as count FROM links').get() as { count: number };
   if (countRow.count === 0) {
     seedInitialLinks();
+  }
+}
+
+function seedDefaultAdmin() {
+  const adminRow = db.query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get() as { count: number };
+  if (adminRow.count === 0) {
+    const now = new Date().toISOString();
+    const adminPassword = process.env.ADMIN_PASSWORD || 'okusadmin123';
+    const hash = Bun.password.hashSync(adminPassword, { algorithm: 'argon2id' });
+
+    db.run(`
+      INSERT INTO users (id, email, password_hash, name, avatar_url, role, auth_provider, google_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, 'admin', 'local', NULL, ?, ?)
+    `, [
+      'usr-admin-ucup',
+      'admin@okus.me',
+      hash,
+      'Bang Ucup (Admin)',
+      'https://api.dicebear.com/7.x/bottts/svg?seed=UcupAdmin',
+      now,
+      now
+    ]);
   }
 }
 
@@ -71,6 +143,10 @@ function formatRowToLink(row: any, domain: string): LinkItem {
 
   return {
     id: row.id,
+    userId: row.user_id || undefined,
+    guestToken: row.guest_token || undefined,
+    isClaimed: Boolean(row.is_claimed),
+    expiresAt: row.expires_at || undefined,
     originalUrl: row.original_url,
     shortSlug: row.short_slug,
     shortUrl: `https://${domain}/${row.short_slug}`,
@@ -89,13 +165,14 @@ function formatRowToLink(row: any, domain: string): LinkItem {
 function seedInitialLinks() {
   const now = new Date().toISOString();
   const insertStmt = db.prepare(`
-    INSERT INTO links (id, original_url, short_slug, category, pin_code, is_active, is_pinned, clicks, scans, qr_config, created_at, updated_at)
-    VALUES ($id, $original_url, $short_slug, $category, $pin_code, $is_active, $is_pinned, $clicks, $scans, $qr_config, $created_at, $updated_at)
+    INSERT INTO links (id, user_id, guest_token, is_claimed, expires_at, original_url, short_slug, category, pin_code, is_active, is_pinned, clicks, scans, qr_config, created_at, updated_at)
+    VALUES ($id, $user_id, NULL, 1, NULL, $original_url, $short_slug, $category, $pin_code, $is_active, $is_pinned, $clicks, $scans, $qr_config, $created_at, $updated_at)
   `);
 
   const initialSeeds = [
     {
       $id: 'link-seed-1',
+      $user_id: 'usr-admin-ucup',
       $original_url: 'https://tokopedia.com/kopikenangan/promo-senin-ceria',
       $short_slug: 'promo-kopi',
       $category: 'Promo',
@@ -118,6 +195,7 @@ function seedInitialLinks() {
     },
     {
       $id: 'link-seed-2',
+      $user_id: 'usr-admin-ucup',
       $original_url: 'https://instagram.com/rakacreative/portfolio',
       $short_slug: 'bio-creator',
       $category: 'Sosial Media',
@@ -139,6 +217,7 @@ function seedInitialLinks() {
     },
     {
       $id: 'link-seed-3',
+      $user_id: 'usr-admin-ucup',
       $original_url: 'https://cindycoffee.menu/standar-menu',
       $short_slug: 'menu-resto',
       $category: 'Produk',
@@ -166,20 +245,121 @@ function seedInitialLinks() {
   }
 }
 
+export const userRepo = {
+  create: (data: {
+    email: string;
+    passwordHash?: string | null;
+    name: string;
+    avatarUrl?: string;
+    role?: 'admin' | 'user';
+    authProvider?: 'local' | 'google';
+    googleId?: string | null;
+  }): UserRecord => {
+    const id = `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const now = new Date().toISOString();
+    const role = data.role || 'user';
+    const provider = data.authProvider || 'local';
+    const avatar = data.avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`;
+
+    db.run(`
+      INSERT INTO users (id, email, password_hash, name, avatar_url, role, auth_provider, google_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      id,
+      data.email.toLowerCase().trim(),
+      data.passwordHash || null,
+      data.name.trim(),
+      avatar,
+      role,
+      provider,
+      data.googleId || null,
+      now,
+      now
+    ]);
+
+    return userRepo.findById(id)!;
+  },
+
+  findById: (id: string): UserRecord | null => {
+    return (db.query('SELECT * FROM users WHERE id = ?').get(id) as UserRecord) || null;
+  },
+
+  findByEmail: (email: string): UserRecord | null => {
+    return (db.query('SELECT * FROM users WHERE LOWER(email) = LOWER(?)').get(email.trim()) as UserRecord) || null;
+  },
+
+  findByGoogleId: (googleId: string): UserRecord | null => {
+    return (db.query('SELECT * FROM users WHERE google_id = ?').get(googleId) as UserRecord) || null;
+  },
+
+  getAllUsers: (): Omit<UserRecord, 'password_hash'>[] => {
+    return db.query('SELECT id, email, name, avatar_url, role, auth_provider, google_id, created_at, updated_at FROM users ORDER BY created_at DESC').all() as any[];
+  }
+};
+
 export const linkRepo = {
-  getAll: (domain: string): LinkItem[] => {
-    const rows = db.query('SELECT * FROM links ORDER BY is_pinned DESC, created_at DESC').all();
+  getAll: (domain: string, filter?: { userId?: string; isAdmin?: boolean; guestToken?: string }): LinkItem[] => {
+    let rows: any[] = [];
+    if (filter?.isAdmin) {
+      rows = db.query('SELECT * FROM links ORDER BY is_pinned DESC, created_at DESC').all();
+    } else if (filter?.userId) {
+      rows = db.query('SELECT * FROM links WHERE user_id = ? ORDER BY is_pinned DESC, created_at DESC').all(filter.userId);
+    } else if (filter?.guestToken) {
+      rows = db.query(`
+        SELECT * FROM links 
+        WHERE guest_token = ? AND is_claimed = 0 AND (expires_at IS NULL OR expires_at > datetime('now'))
+        ORDER BY is_pinned DESC, created_at DESC
+      `).all(filter.guestToken);
+    } else {
+      // Fallback: tampilkan semua tautan aktif
+      rows = db.query('SELECT * FROM links ORDER BY is_pinned DESC, created_at DESC').all();
+    }
     return rows.map(r => formatRowToLink(r, domain));
   },
 
   getBySlug: (slug: string, domain: string): LinkItem | null => {
-    const row = db.query('SELECT * FROM links WHERE short_slug = ?').get(slug);
-    return row ? formatRowToLink(row, domain) : null;
+    const row = db.query('SELECT * FROM links WHERE short_slug = ?').get(slug) as any;
+    if (!row) return null;
+
+    // Periksa apakah tautan tamu sudah kadaluwarsa
+    if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) {
+      return null;
+    }
+
+    return formatRowToLink(row, domain);
   },
 
   getById: (id: string, domain: string): LinkItem | null => {
     const row = db.query('SELECT * FROM links WHERE id = ?').get(id);
     return row ? formatRowToLink(row, domain) : null;
+  },
+
+  countGuestActiveLinks: (guestToken: string): number => {
+    const row = db.query(`
+      SELECT COUNT(*) as count FROM links 
+      WHERE guest_token = ? AND is_claimed = 0 AND (expires_at IS NULL OR expires_at > datetime('now'))
+    `).get(guestToken) as { count: number };
+    return row?.count || 0;
+  },
+
+  claimGuestLinks: (guestToken: string, userId: string): number => {
+    const now = new Date().toISOString();
+    const res = db.run(`
+      UPDATE links 
+      SET user_id = ?, expires_at = NULL, is_claimed = 1, updated_at = ?
+      WHERE guest_token = ? AND (is_claimed = 0 OR user_id IS NULL)
+    `, [userId, now, guestToken]);
+    return res.changes;
+  },
+
+  cleanupExpiredGuestLinks: (): number => {
+    const res = db.run(`
+      DELETE FROM links 
+      WHERE user_id IS NULL 
+        AND expires_at IS NOT NULL 
+        AND expires_at < datetime('now')
+    `);
+    return res.changes;
   },
 
   create: (data: {
@@ -188,27 +368,58 @@ export const linkRepo = {
     category: LinkCategory;
     pinCode?: string;
     qrConfig?: QrStudioConfig;
+    userId?: string;
+    guestToken?: string;
+    expiresAt?: string;
   }, domain: string): LinkItem => {
     const now = new Date().toISOString();
     const id = `link-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const qrConfigStr = data.qrConfig ? JSON.stringify(data.qrConfig) : null;
 
     db.run(
-      `INSERT INTO links (id, original_url, short_slug, category, pin_code, is_active, is_pinned, clicks, scans, qr_config, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 1, 0, 0, 0, ?, ?, ?)`,
-      [id, data.originalUrl, data.shortSlug, data.category, data.pinCode || null, qrConfigStr, now, now]
+      `INSERT INTO links (id, user_id, guest_token, is_claimed, expires_at, original_url, short_slug, category, pin_code, is_active, is_pinned, clicks, scans, qr_config, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 0, 0, ?, ?, ?)`,
+      [
+        id,
+        data.userId || null,
+        data.guestToken || null,
+        data.userId ? 1 : 0,
+        data.expiresAt || null,
+        data.originalUrl,
+        data.shortSlug,
+        data.category,
+        data.pinCode || null,
+        qrConfigStr,
+        now,
+        now
+      ]
     );
 
     return linkRepo.getById(id, domain)!;
   },
 
-  delete: (id: string): boolean => {
+  delete: (id: string, requesterUserId?: string, isAdmin?: boolean): boolean => {
+    if (isAdmin) {
+      const res = db.run('DELETE FROM links WHERE id = ?', [id]);
+      return res.changes > 0;
+    }
+    if (requesterUserId) {
+      const res = db.run('DELETE FROM links WHERE id = ? AND user_id = ?', [id, requesterUserId]);
+      return res.changes > 0;
+    }
+    // Jika penghapusan umum / tamu
     const res = db.run('DELETE FROM links WHERE id = ?', [id]);
     return res.changes > 0;
   },
 
-  togglePin: (id: string, domain: string): LinkItem | null => {
-    const existing = db.query('SELECT is_pinned FROM links WHERE id = ?').get(id) as { is_pinned: number } | null;
+  togglePin: (id: string, domain: string, requesterUserId?: string, isAdmin?: boolean): LinkItem | null => {
+    let existing: { is_pinned: number } | null = null;
+    if (isAdmin || !requesterUserId) {
+      existing = db.query('SELECT is_pinned FROM links WHERE id = ?').get(id) as { is_pinned: number } | null;
+    } else {
+      existing = db.query('SELECT is_pinned FROM links WHERE id = ? AND user_id = ?').get(id, requesterUserId) as { is_pinned: number } | null;
+    }
+
     if (!existing) return null;
 
     const newPinned = existing.is_pinned === 1 ? 0 : 1;
@@ -244,48 +455,82 @@ export const linkRepo = {
     })();
   },
 
-  getAnalyticsSummary: () => {
-    const totalLinks = (db.query('SELECT COUNT(*) as count FROM links').get() as { count: number }).count;
-    const totals = db.query('SELECT SUM(clicks) as totalClicks, SUM(scans) as totalScans FROM links').get() as { totalClicks: number | null; totalScans: number | null };
+  getAnalyticsSummary: (userId?: string, isAdmin?: boolean) => {
+    let totalLinks = 0;
+    let totals = { totalClicks: 0, totalScans: 0 };
+    let referrerRows: { referrer: string; count: number }[] = [];
+    let osRows: { os: string; count: number }[] = [];
 
-    // Breakdown Referrer
-    const referrerRows = db.query(`
-      SELECT referrer, COUNT(*) as count 
-      FROM analytics_events 
-      GROUP BY referrer 
-      ORDER BY count DESC
-    `).all() as { referrer: string; count: number }[];
+    if (isAdmin || !userId) {
+      totalLinks = (db.query('SELECT COUNT(*) as count FROM links').get() as { count: number }).count;
+      const res = db.query('SELECT SUM(clicks) as totalClicks, SUM(scans) as totalScans FROM links').get() as any;
+      totals.totalClicks = res?.totalClicks || 0;
+      totals.totalScans = res?.totalScans || 0;
 
-    // Breakdown OS
-    const osRows = db.query(`
-      SELECT os, COUNT(*) as count 
-      FROM analytics_events 
-      GROUP BY os 
-      ORDER BY count DESC
-    `).all() as { os: string; count: number }[];
+      referrerRows = db.query(`
+        SELECT referrer, COUNT(*) as count 
+        FROM analytics_events 
+        GROUP BY referrer 
+        ORDER BY count DESC
+      `).all() as { referrer: string; count: number }[];
+
+      osRows = db.query(`
+        SELECT os, COUNT(*) as count 
+        FROM analytics_events 
+        GROUP BY os 
+        ORDER BY count DESC
+      `).all() as { os: string; count: number }[];
+    } else {
+      totalLinks = (db.query('SELECT COUNT(*) as count FROM links WHERE user_id = ?').get(userId) as { count: number }).count;
+      const res = db.query('SELECT SUM(clicks) as totalClicks, SUM(scans) as totalScans FROM links WHERE user_id = ?').get(userId) as any;
+      totals.totalClicks = res?.totalClicks || 0;
+      totals.totalScans = res?.totalScans || 0;
+
+      referrerRows = db.query(`
+        SELECT ae.referrer, COUNT(*) as count 
+        FROM analytics_events ae
+        JOIN links l ON ae.link_id = l.id
+        WHERE l.user_id = ?
+        GROUP BY ae.referrer 
+        ORDER BY count DESC
+      `).all(userId) as { referrer: string; count: number }[];
+
+      osRows = db.query(`
+        SELECT ae.os, COUNT(*) as count 
+        FROM analytics_events ae
+        JOIN links l ON ae.link_id = l.id
+        WHERE l.user_id = ?
+        GROUP BY ae.os 
+        ORDER BY count DESC
+      `).all(userId) as { os: string; count: number }[];
+    }
 
     return {
       totalLinks,
-      totalClicks: totals.totalClicks || 0,
-      totalScans: totals.totalScans || 0,
+      totalClicks: totals.totalClicks,
+      totalScans: totals.totalScans,
       referrers: referrerRows,
       os: osRows
     };
   },
 
-  getEvents: () => {
-    const rows = db.query(`
-      SELECT id, link_id, event_type, timestamp, referrer, os 
-      FROM analytics_events 
-      ORDER BY timestamp DESC
-    `).all() as {
-      id: string;
-      link_id: string;
-      event_type: string;
-      timestamp: string;
-      referrer: string;
-      os: string;
-    }[];
+  getEvents: (userId?: string, isAdmin?: boolean) => {
+    let rows: any[] = [];
+    if (isAdmin || !userId) {
+      rows = db.query(`
+        SELECT id, link_id, event_type, timestamp, referrer, os 
+        FROM analytics_events 
+        ORDER BY timestamp DESC
+      `).all();
+    } else {
+      rows = db.query(`
+        SELECT ae.id, ae.link_id, ae.event_type, ae.timestamp, ae.referrer, ae.os 
+        FROM analytics_events ae
+        JOIN links l ON ae.link_id = l.id
+        WHERE l.user_id = ?
+        ORDER BY ae.timestamp DESC
+      `).all(userId);
+    }
 
     return rows.map(r => ({
       id: r.id,
@@ -297,11 +542,18 @@ export const linkRepo = {
     }));
   },
 
-  resetAnalytics: () => {
+  resetAnalytics: (userId?: string, isAdmin?: boolean) => {
     db.transaction(() => {
-      db.run('UPDATE links SET clicks = 0, scans = 0');
-      db.run('DELETE FROM analytics_events');
+      if (isAdmin || !userId) {
+        db.run('UPDATE links SET clicks = 0, scans = 0');
+        db.run('DELETE FROM analytics_events');
+      } else {
+        db.run('UPDATE links SET clicks = 0, scans = 0 WHERE user_id = ?', [userId]);
+        db.run(`
+          DELETE FROM analytics_events 
+          WHERE link_id IN (SELECT id FROM links WHERE user_id = ?)
+        `, [userId]);
+      }
     })();
   }
 };
-

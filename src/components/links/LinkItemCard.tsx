@@ -41,6 +41,11 @@ export function LinkItemCard({ link, onOpenQR }: LinkItemCardProps) {
           <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-snip-ink uppercase tracking-wider shrink-0 ${badgeColor}`}>
             {link.category}
           </span>
+          {link.expiresAt && !link.isClaimed && (
+            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-200 text-amber-950 border border-amber-500 shrink-0" title="Tautan mode tamu aktif 5 hari">
+              ⏳ 5 Hari
+            </span>
+          )}
           <a 
             href={link.shortUrl} 
             target="_blank" 
@@ -50,6 +55,7 @@ export function LinkItemCard({ link, onOpenQR }: LinkItemCardProps) {
             {link.shortUrl}
           </a>
         </div>
+
 
         <button 
           type="button" 

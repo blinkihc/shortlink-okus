@@ -12,6 +12,9 @@ Seluruh dokumentasi teknis, laporan perancangan, panduan implementasi, dan stand
 | **Panduan Backend & Database Terpusat** | Arsitektur REST API Bun, database SQLite persisten, dan volume mount di Easypanel. | [`panduan_backend_dan_database_terpusat.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_backend_dan_database_terpusat.md) |
 | **Panduan Pemisahan Lingkungan** | Arsitektur pembagian lingkungan lokal vs produksi, percabangan Git, dan audit tata letak seluler. | [`panduan_pemisahan_lingkungan_dan_vps.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_pemisahan_lingkungan_dan_vps.md) |
 | **Panduan Penggunaan & Tutorial** | Panduan interaktif pengguna untuk fitur pemendek URL, analitik, dan QR Studio beserta domain asli `okus.me`. | [`panduan_penggunaan_dan_tutorial.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_penggunaan_dan_tutorial.md) |
+| **Panduan Autentikasi & Hak Akses** | Spesifikasi autentikasi multi-pengguna, JWT HttpOnly, otorisasi peran Admin/User, dan aturan tamu 5 hari. | [`panduan_autentikasi_dan_hak_akses.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_autentikasi_dan_hak_akses.md) |
+| **Panduan Integrasi NeedMCP** | Prosedur instalasi, konfigurasi mcp_config.json, dan tata cara penggunaan NeedMCP CLI untuk sistem desain. | [`panduan_integrasi_needmcp.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/panduan_integrasi_needmcp.md) |
+
 
 ---
 
@@ -39,4 +42,8 @@ Seluruh dokumentasi teknis, laporan perancangan, panduan implementasi, dan stand
 | **Laporan Perbaikan Viewport Penuh** | Eliminasi bingkai mockup HP, penghapusan margin vertikal, dan pembersihan komentar antislop. | [`laporan_perbaikan_viewport_full_height.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_perbaikan_viewport_full_height.md) |
 | **Laporan Pembersihan Analitik Riil** | Eliminasi metrik dummy, generator fiktif, tombol simulasi, dan penerapan statistik riil murni. | [`laporan_pembersihan_analitik_riil.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_pembersihan_analitik_riil.md) |
 | **Materi Iklan & Promosi (Before-After)** | Dokumentasi aset halaman HTML dan gambar JPEG materi promosi produk SnipLink. | [`materi_iklan_dan_promosi.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/materi_iklan_dan_promosi.md) |
+| **Laporan Fitur Onboarding (NeedMCP)** | Implementasi tur onboarding 3 fitur berbasis cetak biru struktural onboarding-hero NeedMCP. | [`laporan_fitur_onboarding_needmcp.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_fitur_onboarding_needmcp.md) |
+| **Laporan Fitur Profil (NeedMCP)** | Implementasi halaman profil dan dasbor Creator Pass berbasis cetak biru traveler-profile-dashboard NeedMCP. | [`laporan_fitur_profil_needmcp.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_fitur_profil_needmcp.md) |
+| **Laporan Perampingan Header** | Rekayasa perampingan bilah navigasi atas (header), pemindahan kontrol sekunder ke profil, dan menu avatar Neo-Pop. | [`laporan_perampingan_header.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_perampingan_header.md) |
+
 

@@ -29,8 +29,23 @@ export interface QrStudioConfig {
   ecLevel: 'L' | 'M' | 'Q' | 'H';
 }
 
+export type UserRole = 'admin' | 'user';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  avatarUrl?: string;
+  role: UserRole;
+  authProvider: 'local' | 'google';
+  createdAt: string;
+}
+
 export interface LinkItem {
   id: string;
+  userId?: string;
+  guestToken?: string;
+  isClaimed?: boolean;
   originalUrl: string;
   shortSlug: string;
   shortUrl: string;
@@ -38,7 +53,7 @@ export interface LinkItem {
   isActive: boolean;
   isPinned: boolean;
   pinCode?: string;       // 4 digit PIN jika link diproteksi
-  expiresAt?: string;     // Tanggal kedaluwarsa ISO
+  expiresAt?: string;     // Tanggal kedaluwarsa ISO (5 hari untuk tamu)
   createdAt: string;      // Tanggal pembuatan ISO
   updatedAt: string;
   clicks: number;
@@ -55,3 +70,6 @@ export interface ClickEvent {
   os: 'Android' | 'iOS' | 'Desktop';
   isQrScan: boolean;
 }
+
+export type TabType = 'home' | 'qr' | 'links' | 'analytics' | 'profile';
+

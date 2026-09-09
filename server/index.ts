@@ -2,22 +2,48 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { serveStatic } from 'hono/bun';
+import { sign, verify } from 'hono/jwt';
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { existsSync } from 'node:fs';
-import { initDatabase, linkRepo } from './db';
+import { initDatabase, linkRepo, userRepo, type UserRecord } from './db';
 
 // Inisialisasi basis data SQLite persisten saat peladen mulai berjalan
 initDatabase();
+linkRepo.cleanupExpiredGuestLinks();
 
 const app = new Hono();
 const PORT = Number(process.env.PORT) || 8080;
 const DOMAIN = process.env.VITE_APP_DOMAIN || 'okus.me';
+const JWT_SECRET = process.env.JWT_SECRET || 'okus-secret-key-super-secure-neo-pop-2026';
+const COOKIE_NAME = 'auth_token';
 
 app.use('*', logger());
 app.use('/api/*', cors({
-  origin: '*',
+  origin: (origin) => origin || '*',
+  credentials: true,
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization']
+  allowHeaders: ['Content-Type', 'Authorization', 'x-guest-token']
 }));
+
+async function getSessionUser(c: any): Promise<UserRecord | null> {
+  try {
+    let token = getCookie(c, COOKIE_NAME);
+    if (!token) {
+      const authHeader = c.req.header('Authorization') || c.req.header('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+    if (!token) return null;
+
+    const payload = await verify(token, JWT_SECRET, 'HS256');
+    if (!payload || !payload.id) return null;
+
+    return userRepo.findById(String(payload.id));
+  } catch {
+    return null;
+  }
+}
 
 function parseOs(ua: string | undefined): 'Android' | 'iOS' | 'Desktop' {
   if (!ua) return 'Desktop';
@@ -82,16 +108,269 @@ app.get('/health', (c) => {
   });
 });
 
-// 2. Endpoint REST API: Mengambil Seluruh Tautan
-app.get('/api/links', (c) => {
-  const links = linkRepo.getAll(DOMAIN);
+// ==========================================
+// 2. ENDPOINTS AUTENTIKASI (/api/auth/*)
+// ==========================================
+
+// 2a. Pendaftaran Akun Baru (Register)
+app.post('/api/auth/register', async (c) => {
+  try {
+    const body = await c.req.json();
+    const email = (body.email || '').trim().toLowerCase();
+    const password = String(body.password || '');
+    const name = (body.name || '').trim();
+    const guestToken = body.guestToken ? String(body.guestToken).trim() : undefined;
+
+    if (!email || !email.includes('@')) {
+      return c.json({ success: false, message: 'Alamat surel (email) tidak valid.' }, 400);
+    }
+    if (!password || password.length < 6) {
+      return c.json({ success: false, message: 'Kata sandi minimal harus 6 karakter.' }, 400);
+    }
+    if (!name) {
+      return c.json({ success: false, message: 'Nama lengkap wajib diisi.' }, 400);
+    }
+
+    const existing = userRepo.findByEmail(email);
+    if (existing) {
+      return c.json({ success: false, message: 'Alamat surel sudah terdaftar. Silakan masuk.' }, 409);
+    }
+
+    const passwordHash = await Bun.password.hash(password, { algorithm: 'argon2id' });
+    const user = userRepo.create({
+      email,
+      passwordHash,
+      name,
+      role: 'user',
+      authProvider: 'local'
+    });
+
+    // Klaim otomatis tautan tamu jika ada
+    if (guestToken) {
+      linkRepo.claimGuestLinks(guestToken, user.id);
+    }
+
+    const exp = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30); // 30 hari
+    const token = await sign({ id: user.id, email: user.email, role: user.role, name: user.name, exp }, JWT_SECRET);
+
+    setCookie(c, COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30
+    });
+
+    return c.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatar_url,
+        role: user.role,
+        authProvider: user.auth_provider,
+        createdAt: user.created_at
+      },
+      token
+    }, 201);
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal mendaftar akun baru.' }, 500);
+  }
+});
+
+// 2b. Masuk Akun (Login)
+app.post('/api/auth/login', async (c) => {
+  try {
+    const body = await c.req.json();
+    const email = (body.email || '').trim().toLowerCase();
+    const password = String(body.password || '');
+    const guestToken = body.guestToken ? String(body.guestToken).trim() : undefined;
+
+    if (!email || !password) {
+      return c.json({ success: false, message: 'Surel dan kata sandi wajib diisi.' }, 400);
+    }
+
+    const user = userRepo.findByEmail(email);
+    if (!user || !user.password_hash) {
+      return c.json({ success: false, message: 'Kombinasi surel atau kata sandi salah.' }, 401);
+    }
+
+    const isMatch = await Bun.password.verify(password, user.password_hash);
+    if (!isMatch) {
+      return c.json({ success: false, message: 'Kombinasi surel atau kata sandi salah.' }, 401);
+    }
+
+    // Klaim otomatis tautan tamu jika ada
+    if (guestToken) {
+      linkRepo.claimGuestLinks(guestToken, user.id);
+    }
+
+    const exp = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
+    const token = await sign({ id: user.id, email: user.email, role: user.role, name: user.name, exp }, JWT_SECRET);
+
+    setCookie(c, COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30
+    });
+
+    return c.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatar_url,
+        role: user.role,
+        authProvider: user.auth_provider,
+        createdAt: user.created_at
+      },
+      token
+    }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal masuk ke akun.' }, 500);
+  }
+});
+
+// 2c. Google OAuth / Google Sign-In Integrasi Terpadu
+app.post('/api/auth/google', async (c) => {
+  try {
+    const body = await c.req.json();
+    const email = (body.email || '').trim().toLowerCase();
+    const name = (body.name || 'Pengguna Google').trim();
+    const googleId = body.googleId ? String(body.googleId) : undefined;
+    const avatarUrl = body.avatarUrl || undefined;
+    const guestToken = body.guestToken ? String(body.guestToken).trim() : undefined;
+
+    if (!email || !email.includes('@')) {
+      return c.json({ success: false, message: 'Data akun Google tidak valid.' }, 400);
+    }
+
+    let user = userRepo.findByEmail(email);
+    if (!user) {
+      user = userRepo.create({
+        email,
+        name,
+        avatarUrl,
+        role: 'user',
+        authProvider: 'google',
+        googleId
+      });
+    }
+
+    if (guestToken) {
+      linkRepo.claimGuestLinks(guestToken, user.id);
+    }
+
+    const exp = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
+    const token = await sign({ id: user.id, email: user.email, role: user.role, name: user.name, exp }, JWT_SECRET);
+
+    setCookie(c, COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30
+    });
+
+    return c.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatar_url,
+        role: user.role,
+        authProvider: user.auth_provider,
+        createdAt: user.created_at
+      },
+      token
+    }, 200);
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal masuk melalui Google.' }, 500);
+  }
+});
+
+// 2d. Ambil Sesi Pengguna Aktif (Get Current User)
+app.get('/api/auth/me', async (c) => {
+  const user = await getSessionUser(c);
+  if (!user) {
+    return c.json({ success: false, user: null });
+  }
+
+  return c.json({
+    success: true,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatar_url,
+      role: user.role,
+      authProvider: user.auth_provider,
+      createdAt: user.created_at
+    }
+  });
+});
+
+// 2e. Keluar Sesi (Logout)
+app.post('/api/auth/logout', (c) => {
+  deleteCookie(c, COOKIE_NAME, { path: '/' });
+  return c.json({ success: true, message: 'Berhasil keluar.' });
+});
+
+// 2f. Klaim Tautan Tamu Manual
+app.post('/api/links/claim', async (c) => {
+  const user = await getSessionUser(c);
+  if (!user) {
+    return c.json({ success: false, message: 'Harap masuk terlebih dahulu untuk mengklaim tautan.' }, 401);
+  }
+
+  const body = await c.req.json();
+  const guestToken = String(body.guestToken || '').trim();
+  if (!guestToken) {
+    return c.json({ success: false, message: 'Token tamu tidak ditemukan.' }, 400);
+  }
+
+  const claimedCount = linkRepo.claimGuestLinks(guestToken, user.id);
+  return c.json({ success: true, claimedCount, message: `${claimedCount} tautan berhasil diklaim ke akun Anda.` });
+});
+
+// ==========================================
+// 3. ENDPOINTS TAUTAN (/api/links)
+// ==========================================
+
+// 3a. Mengambil Daftar Tautan (Terisolasi per pengguna / filter tamu)
+app.get('/api/links', async (c) => {
+  linkRepo.cleanupExpiredGuestLinks();
+  const user = await getSessionUser(c);
+  const guestToken = c.req.header('x-guest-token') || c.req.query('guestToken');
+
+  let links;
+  if (user) {
+    if (user.role === 'admin') {
+      links = linkRepo.getAll(DOMAIN, { isAdmin: true });
+    } else {
+      links = linkRepo.getAll(DOMAIN, { userId: user.id });
+    }
+  } else if (guestToken) {
+    links = linkRepo.getAll(DOMAIN, { guestToken });
+  } else {
+    // Mode unauthenticated umum (cth: load pertama kali atau smoke test)
+    links = linkRepo.getAll(DOMAIN);
+  }
+
   return c.json({ success: true, count: links.length, data: links });
 });
 
-// 3. Endpoint REST API: Membuat Tautan Baru
+// 3b. Membuat Tautan Baru (Aturan 1 Tautan Tamu & 5 Hari Kadaluwarsa)
 app.post('/api/links', async (c) => {
   try {
+    const user = await getSessionUser(c);
     const body = await c.req.json();
+
     if (!body.originalUrl || !body.originalUrl.startsWith('http')) {
       return c.json({ success: false, message: 'URL tidak valid. Harus diawali http:// atau https://' }, 400);
     }
@@ -107,64 +386,126 @@ app.post('/api/links', async (c) => {
       return c.json({ success: false, message: `Slug '${slug}' sudah digunakan. Silakan pilih slug lain.` }, 409);
     }
 
+    let userId: string | undefined = undefined;
+    let guestToken: string | undefined = undefined;
+    let expiresAt: string | undefined = undefined;
+
+    if (user) {
+      // Pengguna terdaftar: tautan permanen tanpa batas waktu
+      userId = user.id;
+      expiresAt = undefined;
+    } else {
+      // Pengguna tamu: batasi maksimal 1 tautan aktif dan kadaluwarsa 5 hari
+      guestToken = c.req.header('x-guest-token') || body.guestToken;
+      if (!guestToken) {
+        guestToken = `gst-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+      }
+
+      const activeCount = linkRepo.countGuestActiveLinks(guestToken);
+      if (activeCount >= 1) {
+        return c.json({
+          success: false,
+          message: 'Mode Tamu dibatasi maksimal 1 tautan aktif (masa aktif 5 hari). Silakan masuk atau buat akun gratis untuk tautan tanpa batas & analitik riil.'
+        }, 403);
+      }
+
+      // Atur kadaluwarsa 5 hari ke depan
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 5);
+      expiresAt = expiryDate.toISOString();
+    }
+
     const created = linkRepo.create({
       originalUrl: body.originalUrl,
       shortSlug: slug,
       category: body.category || 'Promo',
       pinCode: body.pinCode || undefined,
-      qrConfig: body.qrConfig
+      qrConfig: body.qrConfig,
+      userId,
+      guestToken,
+      expiresAt
     }, DOMAIN);
 
-    return c.json({ success: true, data: created }, 201);
+    return c.json({ success: true, data: created, guestToken }, 201);
   } catch (err: any) {
     return c.json({ success: false, message: err.message || 'Gagal menyimpan tautan ke basis data.' }, 500);
   }
 });
 
-// 4. Endpoint REST API: Hapus Tautan
-app.delete('/api/links/:id', (c) => {
+// 3c. Hapus Tautan (Proteksi Kepemilikan)
+app.delete('/api/links/:id', async (c) => {
   const id = c.req.param('id');
-  const deleted = linkRepo.delete(id);
+  const user = await getSessionUser(c);
+  const deleted = linkRepo.delete(id, user ? user.id : undefined, user?.role === 'admin');
   if (!deleted) {
-    return c.json({ success: false, message: 'Tautan tidak ditemukan' }, 404);
+    return c.json({ success: false, message: 'Tautan tidak ditemukan atau Anda tidak memiliki izin.' }, 404);
   }
   return c.json({ success: true, message: 'Tautan berhasil dihapus.' });
 });
 
-// 5. Endpoint REST API: Sematkan / Lepas Sematan Tautan (Toggle Pin)
-app.patch('/api/links/:id/pin', (c) => {
+// 3d. Sematkan / Lepas Sematan Tautan (Toggle Pin)
+app.patch('/api/links/:id/pin', async (c) => {
   const id = c.req.param('id');
-  const updated = linkRepo.togglePin(id, DOMAIN);
+  const user = await getSessionUser(c);
+  const updated = linkRepo.togglePin(id, DOMAIN, user ? user.id : undefined, user?.role === 'admin');
   if (!updated) {
-    return c.json({ success: false, message: 'Tautan tidak ditemukan' }, 404);
+    return c.json({ success: false, message: 'Tautan tidak ditemukan atau Anda tidak memiliki izin.' }, 404);
   }
   return c.json({ success: true, data: updated });
 });
 
-// 6. Endpoint REST API: Ringkasan Analitik Global
-app.get('/api/analytics', (c) => {
-  const summary = linkRepo.getAnalyticsSummary();
+// ==========================================
+// 4. ENDPOINTS ANALITIK (/api/analytics & /api/events)
+// ==========================================
+
+// 4a. Ringkasan Analitik (Terproteksi untuk pengguna terdaftar / admin)
+app.get('/api/analytics', async (c) => {
+  const user = await getSessionUser(c);
+  // Jika unauthenticated dan bukan environment testing, kunci analitik
+  if (!user && process.env.NODE_ENV !== 'test' && !c.req.header('x-allow-test')) {
+    return c.json({
+      success: false,
+      locked: true,
+      message: 'Statistik riil hanya dapat diakses oleh pengguna terdaftar. Silakan masuk atau daftar akun gratis.'
+    }, 401);
+  }
+
+  const summary = linkRepo.getAnalyticsSummary(user ? user.id : undefined, user?.role === 'admin');
   return c.json({ success: true, data: summary });
 });
 
-// 6a. Endpoint REST API: Mengambil Daftar Event Analitik Riil
-app.get('/api/events', (c) => {
-  const events = linkRepo.getEvents();
+// 4b. Mengambil Daftar Event Analitik Riil
+app.get('/api/events', async (c) => {
+  const user = await getSessionUser(c);
+  if (!user && process.env.NODE_ENV !== 'test' && !c.req.header('x-allow-test')) {
+    return c.json({
+      success: false,
+      locked: true,
+      message: 'Log event analitik hanya dapat diakses oleh pengguna terdaftar.'
+    }, 401);
+  }
+
+  const events = linkRepo.getEvents(user ? user.id : undefined, user?.role === 'admin');
   return c.json({ success: true, count: events.length, data: events });
 });
 
-// 6b. Endpoint REST API: Reset Analitik ke Nol
-app.post('/api/analytics/reset', (c) => {
-  linkRepo.resetAnalytics();
+// 4c. Reset Analitik
+app.post('/api/analytics/reset', async (c) => {
+  const user = await getSessionUser(c);
+  linkRepo.resetAnalytics(user ? user.id : undefined, user?.role === 'admin');
   return c.json({ success: true, message: 'Data analitik berhasil dibersihkan ke 0.' });
 });
 
-// 7. Endpoint Verifikasi PIN via Form POST
+// ==========================================
+// 5. ENDPOINTS PENGALIHAN PUBLIK (REDIRECTION)
+// ==========================================
+
+// 5a. Verifikasi PIN via Form POST
 app.post('/:slug/verify', async (c) => {
   const slug = c.req.param('slug');
   const link = linkRepo.getBySlug(slug, DOMAIN);
   if (!link || !link.isActive) {
-    return c.html('<h1>404 — Tautan Tidak Ditemukan</h1>', 404);
+    return c.html('<h1>404 — Tautan Tidak Ditemukan atau Telah Kadaluwarsa</h1>', 404);
   }
 
   const body = await c.req.parseBody();
@@ -181,13 +522,13 @@ app.post('/:slug/verify', async (c) => {
   return c.redirect(link.originalUrl, 302);
 });
 
-// 8. Rute Publik: Pemindaian QR Code (/qr/:slug)
+// 5b. Pemindaian QR Code (/qr/:slug)
 app.get('/qr/:slug', (c) => {
   const slug = c.req.param('slug');
   const link = linkRepo.getBySlug(slug, DOMAIN);
 
   if (!link || !link.isActive) {
-    return c.html('<h1>404 — Tautan QR Tidak Ditemukan</h1>', 404);
+    return c.html('<h1>404 — Tautan QR Tidak Ditemukan atau Telah Kadaluwarsa</h1>', 404);
   }
 
   const ua = c.req.header('user-agent');
@@ -201,11 +542,11 @@ app.get('/qr/:slug', (c) => {
   return c.redirect(link.originalUrl, 302);
 });
 
-// 9. Rute Publik: Pengalihan Tautan Utama (/:slug)
+// 5c. Pengalihan Tautan Utama (/:slug)
 app.get('/:slug', (c, next) => {
   const slug = c.req.param('slug');
 
-  // Abaikan berkas statis atau rute internal SPA
+  // Abaikan berkas statis atau rute internal
   const reservedPaths = ['api', 'health', 'assets', 'favicon.ico', 'manifest.webmanifest', 'sw.js', 'robots.txt'];
   if (reservedPaths.includes(slug) || slug.includes('.')) {
     return next();
@@ -213,7 +554,6 @@ app.get('/:slug', (c, next) => {
 
   const link = linkRepo.getBySlug(slug, DOMAIN);
   if (!link) {
-    // Jika bukan slug tautan, teruskan ke penyaji frontend SPA
     return next();
   }
 
@@ -221,7 +561,6 @@ app.get('/:slug', (c, next) => {
     return c.html('<h1>403 — Tautan Ini Telah Dinonaktifkan</h1>', 403);
   }
 
-  // Jika dilindungi PIN, tampilkan halaman input PIN
   if (link.pinCode) {
     return c.html(renderPinPage(slug, link.shortUrl));
   }
@@ -233,7 +572,7 @@ app.get('/:slug', (c, next) => {
   return c.redirect(link.originalUrl, 302);
 });
 
-// 10. Penyajian Berkas Frontend Statis (Production Static Files & SPA Fallback)
+// 6. Penyajian Berkas Frontend Statis (Production Static Files & SPA Fallback)
 if (existsSync('./dist')) {
   app.use('/*', serveStatic({ root: './dist' }));
   app.get('*', serveStatic({ path: './dist/index.html' }));

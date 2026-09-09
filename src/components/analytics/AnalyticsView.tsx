@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useAnalyticsStore } from '../../stores/useAnalyticsStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { BarChart } from './BarChart';
-import { MousePointerClick, QrCode, Smartphone, RotateCw } from 'lucide-react';
+import { MousePointerClick, QrCode, Smartphone, RotateCw, Lock, UserPlus } from 'lucide-react';
 
 export function AnalyticsView() {
   const { 
@@ -13,9 +14,42 @@ export function AnalyticsView() {
     getTotalMetrics 
   } = useAnalyticsStore();
 
+  const { user, openAuthModal } = useAuthStore();
+
   useEffect(() => {
-    initializeAnalytics();
-  }, [initializeAnalytics]);
+    if (user) {
+      initializeAnalytics();
+    }
+  }, [user, initializeAnalytics]);
+
+  if (!user) {
+    return (
+      <div className="flex flex-col gap-4 pb-4">
+        <div className="card-neo bg-amber-50 dark:bg-slate-900 border-3 border-snip-ink dark:border-slate-500 p-5 flex flex-col items-center text-center gap-3 shadow-[5px_5px_0px_#131B2E] dark:shadow-[5px_5px_0px_#000000]">
+          <div className="w-12 h-12 rounded-xl bg-amber-200 dark:bg-amber-900/60 border-2 border-snip-ink dark:border-amber-500 flex items-center justify-center text-amber-900 dark:text-amber-200 shadow-neo-low">
+            <Lock className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-extrabold text-snip-ink dark:text-white">
+              Analitik Riil Khusus Pengguna Terdaftar
+            </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-xs mx-auto leading-relaxed">
+              Statistik klik riil, grafik 7 hari, pemindaian QR, perangkat, dan perujuk hanya tersedia bagi akun terdaftar.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => openAuthModal('login')}
+            className="w-full py-2.5 bg-snip-primary hover:bg-blue-700 text-white font-black rounded-lg border-2 border-snip-ink dark:border-slate-500 shadow-neo-low cursor-pointer active:scale-95 transition-transform flex items-center justify-center gap-2 text-xs"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Buka Akses Analitik (Masuk / Daftar Akun)</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   const totals = getTotalMetrics();
   const dailyStats = getDailyStats(7);

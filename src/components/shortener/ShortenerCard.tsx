@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ChevronDown, Tag, KeyRound, Scissors, ClipboardPaste } from 'lucide-react';
+import { ChevronDown, Tag, KeyRound, Scissors, ClipboardPaste, AlertTriangle, UserPlus, Sparkles } from 'lucide-react';
 import type { LinkCategory, UtmConfig, LinkItem } from '../../types';
 import { useLinkStore } from '../../stores/useLinkStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { resolveSlug } from '../../utils/slugGenerator';
 import { isValidUrl, appendUtmParameters } from '../../utils/urlValidator';
 import { UtmBuilderModal } from './UtmBuilderModal';
@@ -21,6 +22,10 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
   const [utmConfig, setUtmConfig] = useState<UtmConfig | undefined>(undefined);
 
   const { links, addLink, showToast } = useLinkStore();
+  const { user, openAuthModal } = useAuthStore();
+
+  const isGuest = !user;
+  const isGuestAtLimit = isGuest && links.length >= 1;
 
   const handlePaste = async () => {
     try {
@@ -41,6 +46,12 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isGuestAtLimit) {
+      showToast('Batas 1 tautan mode tamu tercapai. Masuk untuk tautan tanpa batas.', false);
+      openAuthModal('register');
+      return;
+    }
+
     if (!isValidUrl(url)) {
       showToast('Harap masukkan URL yang valid (https://...)', false);
       return;
@@ -50,30 +61,79 @@ export function ShortenerCard({ onCreated }: ShortenerCardProps) {
     const existingSlugs = links.map(l => l.shortSlug);
     const slug = resolveSlug(customSlug, existingSlugs);
 
-    const created = await addLink({
-      originalUrl: finalOriginalUrl,
-      shortSlug: slug,
-      category: category,
-      pinCode: pinCode.trim() ? pinCode.trim() : undefined
-    });
+    try {
+      const created = await addLink({
+        originalUrl: finalOriginalUrl,
+        shortSlug: slug,
+        category: category,
+        pinCode: pinCode.trim() ? pinCode.trim() : undefined
+      });
 
-    onCreated(created);
-    setUrl('');
-    setCustomSlug('');
-    setPinCode('');
-    setUtmConfig(undefined);
+      onCreated(created);
+      setUrl('');
+      setCustomSlug('');
+      setPinCode('');
+      setUtmConfig(undefined);
+    } catch (err: any) {
+      if (err.message && err.message.includes('Mode Tamu')) {
+        openAuthModal('register');
+      }
+    }
   };
 
   return (
     <section className="card-neo">
-      <h2 className="text-lg font-extrabold tracking-tight mb-1 text-snip-ink dark:text-white">
-        Pemendek Tautan Kilat
-      </h2>
-      <p className="text-xs text-slate-600 dark:text-slate-300 mb-3.5">
-        Tempel URL panjang untuk membuat tautan ringkas dan kode QR instan.
-      </p>
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <div>
+          <h2 className="text-lg font-extrabold tracking-tight text-snip-ink dark:text-white">
+            Pemendek Tautan Kilat
+          </h2>
+          <p className="text-xs text-slate-600 dark:text-slate-300">
+            Tempel URL panjang untuk membuat tautan ringkas dan kode QR instan.
+          </p>
+        </div>
+      </div>
+
+      {/* Banner Status Tamu */}
+      {isGuest && !isGuestAtLimit && (
+        <div className="bg-blue-50 dark:bg-slate-800/90 border border-blue-200 dark:border-slate-600 rounded-lg p-2.5 my-3 flex items-center justify-between text-[11px] text-blue-900 dark:text-sky-200">
+          <div className="flex items-center gap-1.5 font-medium">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-sky-400 shrink-0" />
+            <span>Mode Tamu: 1 tautan aktif (aktif 5 hari).</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => openAuthModal('login')}
+            className="font-bold underline text-snip-primary dark:text-sky-400 cursor-pointer ml-2 hover:opacity-80 shrink-0"
+          >
+            Masuk Akun
+          </button>
+        </div>
+      )}
+
+      {/* Banner Limit Tamu */}
+      {isGuestAtLimit && (
+        <div className="bg-amber-100 dark:bg-amber-950/80 border-2 border-amber-500 rounded-lg p-3 my-3 text-xs text-amber-950 dark:text-amber-200">
+          <div className="flex items-center gap-1.5 font-black text-xs text-amber-900 dark:text-amber-300 mb-1">
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>Batas 1 Tautan Tamu Tercapai</span>
+          </div>
+          <p className="text-[11px] leading-relaxed mb-2">
+            Anda telah menggunakan kuota 1 tautan tamu (aktif 5 hari). Daftar atau masuk untuk tautan permanen tanpa batas & analitik riil.
+          </p>
+          <button
+            type="button"
+            onClick={() => openAuthModal('register')}
+            className="w-full py-1.5 bg-snip-primary hover:bg-blue-700 text-white font-black rounded border-2 border-snip-ink dark:border-slate-500 shadow-neo-low cursor-pointer active:scale-95 transition-transform flex items-center justify-center gap-1.5 text-xs"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Daftar / Masuk Akun Sekarang →</span>
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+
         <div className="flex flex-col gap-1.5">
           <label className="text-[11px] font-extrabold uppercase text-snip-ink dark:text-slate-200 tracking-wider">
             Tautan Asli (URL Panjang)

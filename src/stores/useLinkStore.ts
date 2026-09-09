@@ -1,11 +1,11 @@
 import { create } from 'zustand';
-import type { LinkItem, LinkCategory, QrStudioConfig } from '../types';
+import type { LinkItem, LinkCategory, QrStudioConfig, TabType } from '../types';
 import { INITIAL_SEED_LINKS, getDb } from '../db/indexedDb';
 import { APP_CONFIG } from '../config/appConfig';
 
 interface LinkStoreState {
   links: LinkItem[];
-  activeTab: 'home' | 'qr' | 'links' | 'analytics';
+  activeTab: TabType;
   selectedCategory: LinkCategory | 'all';
   searchQuery: string;
   qrActiveUrl: string;
@@ -25,7 +25,7 @@ interface LinkStoreState {
   deleteLink: (id: string) => Promise<void>;
   incrementClicks: (id: string) => Promise<void>;
   incrementScans: (id: string) => Promise<void>;
-  setActiveTab: (tab: 'home' | 'qr' | 'links' | 'analytics') => void;
+  setActiveTab: (tab: TabType) => void;
   setSelectedCategory: (category: LinkCategory | 'all') => void;
   setSearchQuery: (query: string) => void;
   setQrActiveUrl: (url: string) => void;
@@ -56,17 +56,25 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
   toastSuccess: true,
 
   initializeStore: async () => {
+    const guestToken = typeof window !== 'undefined' ? localStorage.getItem('sniplink_guest_token') || '' : '';
     try {
-      const res = await fetch('/api/links');
+      const res = await fetch('/api/links', {
+        credentials: 'include',
+        headers: {
+          'x-guest-token': guestToken
+        }
+      });
       if (res.ok) {
         const body = await res.json();
-        if (body.success && Array.isArray(body.data) && body.data.length > 0) {
-          set({ links: body.data, qrActiveUrl: body.data[0].shortUrl });
+        if (body.success && Array.isArray(body.data)) {
+          set({ links: body.data, qrActiveUrl: body.data.length > 0 ? body.data[0].shortUrl : '' });
           if (typeof window !== 'undefined' && 'indexedDB' in window) {
             try {
               const db = getDb();
               await db.links.clear();
-              await db.links.bulkAdd(body.data);
+              if (body.data.length > 0) {
+                await db.links.bulkAdd(body.data);
+              }
             } catch {}
           }
           return;
@@ -93,10 +101,15 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
   },
 
   addLink: async (data) => {
+    const guestToken = typeof window !== 'undefined' ? localStorage.getItem('sniplink_guest_token') || '' : '';
     try {
       const res = await fetch('/api/links', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-guest-token': guestToken
+        },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
       if (res.ok) {
@@ -107,13 +120,22 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
           if (typeof window !== 'undefined' && 'indexedDB' in window) {
             try { await getDb().links.add(created); } catch {}
           }
-          get().showToast('Tautan ringkas berhasil disimpan ke server terpusat!');
+          get().showToast('Tautan ringkas berhasil dibuat!');
           return created;
         }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData.message || 'Gagal menyimpan tautan.';
+        get().showToast(msg, false);
+        throw new Error(msg);
       }
-    } catch {
-      // Fallback ke penyimpanan lokal
+    } catch (err: any) {
+      if (err.message && err.message.includes('Mode Tamu')) {
+        throw err;
+      }
+      // Fallback ke penyimpanan lokal jika offline
     }
+
 
     const now = new Date().toISOString();
     const newLink: LinkItem = {
