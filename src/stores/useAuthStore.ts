@@ -172,41 +172,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  loginWithGoogle: async (mockProfile) => {
-    set({ isLoading: true });
-    try {
-      const email = mockProfile?.email || 'user.google@gmail.com';
-      const name = mockProfile?.name || 'Pengguna Google';
-
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          email,
-          name,
-          googleId: `goog-${Date.now()}`,
-          avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`,
-          guestToken: get().guestToken
-        })
-      });
-
-      const parsed = await parseResponseSafe(res);
-      if (!parsed.success || !parsed.data?.user) {
-        set({ isLoading: false });
-        return { success: false, message: parsed.message || 'Gagal masuk lewat Google.' };
-      }
-
-      if (parsed.data?.token) {
-        localStorage.setItem('sniplink_token', parsed.data.token);
-      }
-
-      set({ user: parsed.data.user, isAuthModalOpen: false, isLoading: false });
-      return { success: true };
-    } catch (err: any) {
-      set({ isLoading: false });
-      return { success: false, message: err.message || 'Koneksi ke peladen terputus.' };
-    }
+  loginWithGoogle: async () => {
+    return { 
+      success: false, 
+      message: 'Metode masuk dengan Google sedang dinonaktifkan sementara.' 
+    };
   },
 
 

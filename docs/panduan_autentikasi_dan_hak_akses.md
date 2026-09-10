@@ -67,7 +67,7 @@ Sistem autentikasi SnipLink beroperasi mandiri pada peladen Bun + Hono tanpa ket
 | :--- | :--- | :--- | :--- |
 | `/api/auth/register` | `POST` | Publik | Mendaftarkan akun baru (surel, sandi min. 6 karakter, nama, opsional `guestToken`). |
 | `/api/auth/login` | `POST` | Publik | Masuk dengan surel & kata sandi; mengembalikan cookie JWT `HttpOnly`. |
-| `/api/auth/google` | `POST` | Publik | Integrasi masuk cepat via profil Google OAuth. |
+| `/api/auth/google` | `POST` | Publik | Dinonaktifkan sementara demi integritas data akun (merespons HTTP 503, lihat [`analisis_google_auth_dan_solusi.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/analisis_google_auth_dan_solusi.md)). |
 | `/api/auth/me` | `GET` | Cookie / Bearer | Mengambil profil pengguna yang sedang aktif. |
 | `/api/auth/logout` | `POST` | Sesi Aktif | Menghapus cookie `auth_token` untuk keluar sesi. |
 | `/api/auth/set-password` | `POST` | Sesi Aktif | Membuat atau memperbarui kata sandi baru akun (enkripsi Argon2id). |

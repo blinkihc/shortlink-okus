@@ -257,64 +257,14 @@ app.post('/api/auth/login', async (c) => {
   }
 });
 
-// 2c. Google OAuth / Google Sign-In Integrasi Terpadu
+// 2c. Google OAuth / Google Sign-In Integrasi Terpadu (Dinonaktifkan sementara)
 app.post('/api/auth/google', async (c) => {
-  try {
-    const body = await c.req.json();
-    const email = (body.email || '').trim().toLowerCase();
-    const name = (body.name || 'Pengguna Google').trim();
-    const googleId = body.googleId ? String(body.googleId) : undefined;
-    const avatarUrl = body.avatarUrl || undefined;
-    const guestToken = body.guestToken ? String(body.guestToken).trim() : undefined;
-
-    if (!email || !email.includes('@')) {
-      return c.json({ success: false, message: 'Data akun Google tidak valid.' }, 400);
-    }
-
-    let user = userRepo.findByEmail(email);
-    if (!user) {
-      user = userRepo.create({
-        email,
-        name,
-        avatarUrl,
-        role: 'user',
-        authProvider: 'google',
-        googleId
-      });
-    }
-
-    if (guestToken) {
-      linkRepo.claimGuestLinks(guestToken, user.id);
-    }
-
-    const exp = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
-    const token = await sign({ id: user.id, email: user.email, role: user.role, name: user.name, exp }, JWT_SECRET);
-
-    setCookie(c, COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30
-    });
-
-    return c.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        avatarUrl: user.avatar_url,
-        role: user.role,
-        authProvider: user.auth_provider,
-        createdAt: user.created_at
-      },
-      token
-    }, 200);
-  } catch (err: any) {
-    return c.json({ success: false, message: err.message || 'Gagal masuk melalui Google.' }, 500);
-  }
+  return c.json({
+    success: false,
+    message: 'Layanan autentikasi Google dinonaktifkan sementara demi integritas data.'
+  }, 503);
 });
+
 
 // 2d. Ambil Sesi Pengguna Aktif (Get Current User)
 app.get('/api/auth/me', async (c) => {

@@ -48,5 +48,7 @@ Seluruh dokumentasi teknis, laporan perancangan, panduan implementasi, dan stand
 | **Laporan Penyesuaian Tampilan Tamu** | Penghapusan banner mode tamu dan penyembunyian opsi kustomisasi serta metrik untuk pengguna anonim. | [`laporan_penyesuaian_tampilan_tamu.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_penyesuaian_tampilan_tamu.md) |
 | **Laporan Persistensi Shortlink (Tamu vs Member)** | Analisis dan perbaikan hilangnya shortlink saat reload, persistensi device 5 hari tamu, dan penguncian basis data produksi member. | [`laporan_persistensi_shortlink_member_dan_tamu.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_persistensi_shortlink_member_dan_tamu.md) |
 | **Laporan Halaman Pengaturan Admin** | Implementasi Admin Settings: batas simpan tamu (app_settings), kategori (kategori), dan frame aksi CTA (frame_aksi). | [`laporan_admin_settings_page.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/laporan_admin_settings_page.md) |
+| **Analisis Google Auth & Solusi** | Investigasi penyebab akun dummy Google Auth, pemetaan aliran data, dan rekomendasi integrasi Google Identity Services. | [`analisis_google_auth_dan_solusi.md`](file:///c:/Users/NB%20-%20MBA/Documents/antigravity/kind-hubble/docs/analisis_google_auth_dan_solusi.md) |
+
 
 
