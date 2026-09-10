@@ -46,7 +46,7 @@ RUN mkdir -p /app/data && chown -R bun:bun /app
 # Konfigurasi variabel lingkungan produksi
 ENV NODE_ENV=production
 ENV PORT=8080
-ENV DATABASE_PATH=/app/data/sniplink.db
+ENV DATABASE_PATH=/app/data/sniplink-production.db
 
 # Jalankan dengan pengguna non-root
 USER bun

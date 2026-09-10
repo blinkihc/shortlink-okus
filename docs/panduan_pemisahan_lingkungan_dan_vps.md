@@ -8,11 +8,11 @@ Dokumen arsitektur teknis dan prosedur operasional untuk memisahkan siklus penge
 
 Untuk menjamin stabilitas aplikasi, sistem dibagi menjadi 3 tingkatan lingkungan:
 
-| Lingkungan (*Environment*) | Fungsi & Lokasi | Domain / URL | Sumber Basis Data |
-| :--- | :--- | :--- | :--- |
-| **Lokal (*Development*)** | Tempat menulis kode baru, eksperimen, & perbaikan kutu di komputer pengembang. | `http://localhost:5173` | IndexedDB Browser Lokal (Dexie) |
-| **Staging (*Pra-Produksi*)** | Tempat pengujian menyeluruh persis seperti kondisi produksi sebelum dirilis ke publik. | `https://staging.okus.me` (opsional) | Terisolasi / Basis Data Uji Coba |
-| **Production (*Produksi*)** | Aplikasi langsung yang digunakan oleh pengguna akhir secara publik di internet. | `https://okus.me` | VPS Production / IndexedDB Pengguna Nyata |
+| Lingkungan (*Environment*) | Fungsi & Lokasi | Domain / URL | Sumber Basis Data | Kebijakan Data Awal |
+| :--- | :--- | :--- | :--- | :--- |
+| **Lokal (*Development*)** | Tempat menulis kode baru & eksperimen di komputer pengembang. | `http://localhost:5173` / `8080` | SQLite Terisolasi (`./data/sniplink-dev.db`) + IndexedDB Tamu | Diizinkan data percontohan (*seed links*) jika tabel kosong |
+| **Staging (*Pra-Produksi*)** | Tempat pengujian menyeluruh pra-rilis. | `https://staging.okus.me` (opsional) | SQLite Terisolasi (`./data/sniplink-staging.db`) | **100% Bersih** (tanpa tautan percontohan) |
+| **Production (*Produksi*)** | Aplikasi aktif pengguna publik di internet. | `https://okus.me` | SQLite Permanen (`/app/data/sniplink-production.db`) | **100% Bersih** (hanya tautan riil & akun admin Bang Ucup) |
 
 ---
 

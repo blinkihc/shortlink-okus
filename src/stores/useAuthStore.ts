@@ -54,6 +54,11 @@ async function parseResponseSafe(res: Response): Promise<{ success: boolean; dat
   return { success: true, message: rawText };
 }
 
+export function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('sniplink_token');
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: true,
@@ -66,8 +71,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initAuth: async () => {
     set({ isLoading: true });
     try {
+      const token = getAuthToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch('/api/auth/me', {
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include'
       });
 
@@ -81,6 +92,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           });
           return;
         }
+      } else if (token) {
+        // Jika token tidak valid / kadaluwarsa, bersihkan token lokal
+        localStorage.removeItem('sniplink_token');
       }
     } catch (err) {
       console.warn('Gagal memverifikasi sesi pengguna:', err);
@@ -106,6 +120,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!parsed.success || !parsed.data?.user) {
         set({ isLoading: false });
         return { success: false, message: parsed.message || 'Gagal masuk akun.' };
+      }
+
+      if (parsed.data?.token) {
+        localStorage.setItem('sniplink_token', parsed.data.token);
       }
 
       set({ 
@@ -142,6 +160,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, message: parsed.message || 'Gagal mendaftar akun baru.' };
       }
 
+      if (parsed.data?.token) {
+        localStorage.setItem('sniplink_token', parsed.data.token);
+      }
+
       set({ user: parsed.data.user, isAuthModalOpen: false, isLoading: false });
       return { success: true };
     } catch (err: any) {
@@ -175,6 +197,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, message: parsed.message || 'Gagal masuk lewat Google.' };
       }
 
+      if (parsed.data?.token) {
+        localStorage.setItem('sniplink_token', parsed.data.token);
+      }
+
       set({ user: parsed.data.user, isAuthModalOpen: false, isLoading: false });
       return { success: true };
     } catch (err: any) {
@@ -186,20 +212,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     try {
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       await fetch('/api/auth/logout', {
         method: 'POST',
+        headers,
         credentials: 'include'
       });
     } catch {}
+    localStorage.removeItem('sniplink_token');
     set({ user: null, mustSetPassword: false });
   },
 
   setPassword: async (newPassword: string) => {
     set({ isLoading: true });
     try {
+      const token = getAuthToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch('/api/auth/set-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ password: newPassword })
       });

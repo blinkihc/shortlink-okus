@@ -101,3 +101,17 @@ Untuk mencegah dialog bawaan peramban (*browser native alert*) yang kaku, SnipLi
   - Penutupan otomatis saat pengguna menekan tombol papan ketik `Escape` atau menyentuh latar belakang buram (*backdrop click dismiss*).
   - Menampilkan notifikasi (*toast*) konfirmasi keberhasilan saat sesi aktif selesai diakhiri.
 
+---
+
+## 7. Visibilitas Kontrol Antarmuka (Tamu vs Pengguna Login)
+
+Untuk menyederhanakan alur pengguna anonim (*guest UX*) serta membedakan hak guna fitur tingkat lanjut:
+
+| Komponen / Elemen | Mode Tamu (Anonim) | Pengguna Terdaftar (Login) | Keterangan |
+| :--- | :--- | :--- | :--- |
+| **Banner Informasi Tamu** | Dihapus / Tidak Ditampilkan | Tidak Ditampilkan | Banner statis mode tamu di atas formulir pemendek telah dihapus untuk tampilan yang lebih bersih. |
+| **Kustomisasi Slug, Kategori & PIN** | Tersembunyi (*Hidden*) | Ditampilkan (*Visible*) | Opsi lanjutan (slug kustom, pilihan kategori, dan proteksi PIN) hanya tersedia bagi pengguna yang telah login. |
+| **Parameter UTM** | Tersembunyi (*Hidden*) | Ditampilkan (*Visible*) | Tombol pembuat parameter UTM (*Urchin Tracking Module*) hanya dapat diakses pengguna terdaftar. |
+| **Ringkasan Metrik Cepat (3 Angka)** | Tersembunyi (*Hidden*) | Ditampilkan (*Visible*) | Blok metrik beranda ("Tautan Aktif", "Total Klik", "Scan QR") disembunyikan untuk pengunjung anonim. |
+
+

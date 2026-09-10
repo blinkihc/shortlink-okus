@@ -2,7 +2,7 @@
  * SnipLink MVP Domain Interfaces & Types
  */
 
-export type LinkCategory = 'Promo' | 'Sosial Media' | 'Produk' | 'Kontak';
+export type LinkCategory = string;
 
 export interface UtmConfig {
   id?: string;
@@ -15,7 +15,7 @@ export interface UtmConfig {
 }
 
 export type QRModuleStyle = 'chunky' | 'squircle' | 'dot';
-export type QRFrameType = 'scan-me' | 'menu' | 'wifi' | 'none';
+export type QRFrameType = string;
 
 export interface QrStudioConfig {
   id?: string;
@@ -72,5 +72,26 @@ export interface ClickEvent {
   isQrScan: boolean;
 }
 
-export type TabType = 'home' | 'qr' | 'links' | 'analytics' | 'profile';
+export type TabType = 'home' | 'qr' | 'links' | 'analytics' | 'profile' | 'admin-settings';
+
+export interface AppSettings {
+  guestLinkExpiryDays: number;
+  [key: string]: any;
+}
+
+export interface CategoryItem {
+  id: string;
+  nama: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface FrameAksiItem {
+  id: string;
+  nama: string;
+  teksCta: string;
+  kode: string;
+  isActive: boolean;
+  createdAt: string;
+}
 

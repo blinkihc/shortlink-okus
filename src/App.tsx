@@ -8,7 +8,8 @@ import {
   AlertCircle, 
   LogIn, 
   LogOut, 
-  User
+  User,
+  Settings
 } from 'lucide-react';
 import { useLinkStore } from './stores/useLinkStore';
 import { useThemeStore } from './stores/useThemeStore';
@@ -25,6 +26,7 @@ import { LogoutConfirmModal } from './components/auth/LogoutConfirmModal';
 import { SetPasswordModal } from './components/auth/SetPasswordModal';
 import { OnboardingHero } from './components/onboarding/OnboardingHero';
 import { ProfileDashboard } from './components/profile/ProfileDashboard';
+import { AdminSettingsView } from './components/admin/AdminSettingsView';
 import type { LinkItem } from './types';
 
 
@@ -43,7 +45,34 @@ export function App() {
   const { initializeTheme } = useThemeStore();
   const { user, openAuthModal, openLogoutConfirm, initAuth } = useAuthStore();
 
-  const [createdResult, setCreatedResult] = useState<LinkItem | null>(null);
+  const [createdResult, setCreatedResult] = useState<LinkItem | null>(() => {
+    try {
+      const saved = sessionStorage.getItem('sniplink_last_created_result');
+      if (saved) {
+        const item: LinkItem = JSON.parse(saved);
+        if (!item.expiresAt || new Date(item.expiresAt).getTime() > Date.now()) {
+          return item;
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleCreated = (link: LinkItem) => {
+    setCreatedResult(link);
+    try {
+      sessionStorage.setItem('sniplink_last_created_result', JSON.stringify(link));
+    } catch {}
+  };
+
+  const handleCloseCreated = () => {
+    setCreatedResult(null);
+    try {
+      sessionStorage.removeItem('sniplink_last_created_result');
+    } catch {}
+  };
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -77,11 +106,20 @@ export function App() {
     };
   }, [isUserMenuOpen]);
 
+  // Inisialisasi tema, autentikasi sesi, dan tautan secara sekuensial
   useEffect(() => {
-    initAuth();
-    initializeStore();
     initializeTheme();
+    const initApp = async () => {
+      await initAuth();
+      await initializeStore();
+    };
+    initApp();
   }, [initAuth, initializeStore, initializeTheme]);
+
+  // Ambil ulang tautan saat status user (login/logout) berubah
+  useEffect(() => {
+    initializeStore();
+  }, [user, initializeStore]);
 
   const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
   const totalScans = links.reduce((sum, l) => sum + l.scans, 0);
@@ -185,6 +223,20 @@ export function App() {
                       <span>Profil Saya</span>
                     </button>
 
+                    {user.role === 'admin' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('admin-settings');
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-xs font-black text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-2 transition-colors cursor-pointer border-t border-snip-ink/10 dark:border-slate-800"
+                      >
+                        <Settings className="w-3.5 h-3.5" />
+                        <span>Settings</span>
+                      </button>
+                    )}
+
                     <div className="h-[1px] bg-snip-ink/10 dark:bg-slate-800" />
 
                     <button
@@ -219,31 +271,33 @@ export function App() {
         <div id="screen-viewport" className="flex-1 overflow-y-auto p-3.5 sm:p-4 flex flex-col gap-4">
           {activeTab === 'home' && (
             <div key="home-view" className="animate-fade-slide-up flex flex-col gap-3.5">
-              <ShortenerCard onCreated={link => setCreatedResult(link)} />
+              <ShortenerCard onCreated={handleCreated} />
 
               {createdResult && (
                 <ResultCard 
                   link={createdResult}
-                  onClose={() => setCreatedResult(null)}
+                  onClose={handleCloseCreated}
                   onOpenQR={handleOpenQR}
                   onCopy={handleCopyLink}
                 />
               )}
 
-              <div className="card-neo grid grid-cols-3 text-center p-3">
-                <div>
-                  <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{links.length}</div>
-                  <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Tautan Aktif</div>
+              {user && (
+                <div className="card-neo grid grid-cols-3 text-center p-3">
+                  <div>
+                    <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{links.length}</div>
+                    <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Tautan Aktif</div>
+                  </div>
+                  <div className="border-x-2 border-snip-ink dark:border-slate-600">
+                    <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{totalClicks.toLocaleString()}</div>
+                    <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Total Klik</div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{totalScans.toLocaleString()}</div>
+                    <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Scan QR</div>
+                  </div>
                 </div>
-                <div className="border-x-2 border-snip-ink dark:border-slate-600">
-                  <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{totalClicks.toLocaleString()}</div>
-                  <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Total Klik</div>
-                </div>
-                <div>
-                  <div className="text-xl font-extrabold text-snip-primary dark:text-sky-400">{totalScans.toLocaleString()}</div>
-                  <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Scan QR</div>
-                </div>
-              </div>
+              )}
 
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
@@ -294,6 +348,12 @@ export function App() {
                 onOpenInstallModal={() => setIsInstallModalOpen(true)}
                 onOpenOnboarding={() => setShowOnboarding(true)}
               />
+            </div>
+          )}
+
+          {activeTab === 'admin-settings' && (
+            <div key="admin-settings-view" className="animate-fade-slide-up flex flex-col gap-3.5">
+              <AdminSettingsView onBack={() => setActiveTab('home')} />
             </div>
           )}
         </div>

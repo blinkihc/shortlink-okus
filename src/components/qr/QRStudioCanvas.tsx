@@ -1,16 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, FileCode, Camera, Check, Link as LinkIcon } from 'lucide-react';
 import { useLinkStore } from '../../stores/useLinkStore';
+import { useAdminStore } from '../../stores/useAdminStore';
 import { renderQRToCanvas, downloadCanvasAsPng, generateQRSvgString, downloadSvgString } from '../../utils/qrGenerator';
 import { calculateContrastAgainstWhite } from '../../utils/contrastChecker';
 import { APP_CONFIG } from '../../config/appConfig';
 import { QRScannerModal } from './QRScannerModal';
-import type { QRModuleStyle, QRFrameType } from '../../types';
+import type { QRModuleStyle } from '../../types';
 
 export function QRStudioCanvas() {
   const { qrActiveUrl, qrConfig, updateQrConfig, setQrActiveUrl, showToast } = useLinkStore();
+  const { frames, fetchPublicFrames } = useAdminStore();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+  useEffect(() => {
+    fetchPublicFrames();
+  }, [fetchPublicFrames]);
 
   const contrastInfo = calculateContrastAgainstWhite(qrConfig.fgColor);
 
@@ -72,12 +78,6 @@ export function QRStudioCanvas() {
 
         {/* Frame Outer Wrapper - Tetap putih agar pembacaan kamera fisik 100% akurat */}
         <div className="bg-white border-3 border-snip-ink dark:border-slate-300 rounded-lg shadow-neo-deep dark:shadow-[4px_4px_0px_#000000] p-4 pb-3 flex flex-col items-center gap-2 relative">
-          {qrConfig.frameType === 'wifi' && (
-            <div className="bg-snip-accent text-snip-ink border-2 border-snip-ink rounded-sm text-xs font-extrabold px-3 py-1 shadow-[2px_2px_0px_#131B2E]">
-              FREE WI-FI
-            </div>
-          )}
-
           <div className="relative flex items-center justify-center">
             <canvas 
               ref={canvasRef} 
@@ -97,9 +97,15 @@ export function QRStudioCanvas() {
 
           {qrConfig.frameType !== 'none' && (
             <div className="bg-snip-accent text-snip-ink border-2 border-snip-ink rounded-sm text-xs font-extrabold px-3 py-1 shadow-[2px_2px_0px_#131B2E] uppercase">
-              {qrConfig.frameType === 'scan-me' && 'SCAN ME!'}
-              {qrConfig.frameType === 'menu' && 'LIHAT MENU'}
-              {qrConfig.frameType === 'wifi' && 'SCAN TO CONNECT'}
+              {(() => {
+                const activeFrame = frames.find(f => f.kode === qrConfig.frameType);
+                if (activeFrame) return activeFrame.teksCta;
+                if (qrConfig.frameText) return qrConfig.frameText;
+                if (qrConfig.frameType === 'scan-me') return 'SCAN ME!';
+                if (qrConfig.frameType === 'menu') return 'LIHAT MENU';
+                if (qrConfig.frameType === 'wifi') return 'FREE WI-FI';
+                return 'SCAN ME!';
+              })()}
             </div>
           )}
         </div>
@@ -189,23 +195,38 @@ export function QRStudioCanvas() {
             4. Frame Stiker Aksi (CTA)
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {(['scan-me', 'menu', 'wifi', 'none'] as QRFrameType[]).map(frame => (
+            {(frames.length > 0 
+              ? frames.filter(f => f.isActive) 
+              : [
+                  { id: '1', nama: 'Scan Me', kode: 'scan-me', teksCta: 'SCAN ME!' },
+                  { id: '2', nama: 'Menu Resto', kode: 'menu', teksCta: 'LIHAT MENU' },
+                  { id: '3', nama: 'Koneksi WiFi', kode: 'wifi', teksCta: 'FREE WI-FI' }
+                ]
+            ).map(frame => (
               <button
-                key={frame}
+                key={frame.kode}
                 type="button"
-                onClick={() => updateQrConfig({ frameType: frame })}
+                onClick={() => updateQrConfig({ frameType: frame.kode, frameText: frame.teksCta })}
                 className={`text-xs font-bold py-2 px-2.5 rounded-md border-2 border-snip-ink dark:border-slate-500 shadow-neo-low dark:shadow-none cursor-pointer transition-colors ${
-                  qrConfig.frameType === frame 
+                  qrConfig.frameType === frame.kode 
                     ? 'bg-snip-primary text-white translate-x-[1px] translate-y-[1px]' 
                     : 'bg-white dark:bg-slate-800 text-snip-ink dark:text-slate-200 hover:dark:bg-slate-700'
                 }`}
               >
-                {frame === 'scan-me' && '"SCAN ME!"'}
-                {frame === 'menu' && '"LIHAT MENU"'}
-                {frame === 'wifi' && '"FREE WI-FI"'}
-                {frame === 'none' && 'Tanpa Frame'}
+                "{frame.teksCta}"
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => updateQrConfig({ frameType: 'none', frameText: '' })}
+              className={`text-xs font-bold py-2 px-2.5 rounded-md border-2 border-snip-ink dark:border-slate-500 shadow-neo-low dark:shadow-none cursor-pointer transition-colors ${
+                qrConfig.frameType === 'none' 
+                  ? 'bg-snip-primary text-white translate-x-[1px] translate-y-[1px]' 
+                  : 'bg-white dark:bg-slate-800 text-snip-ink dark:text-slate-200 hover:dark:bg-slate-700'
+              }`}
+            >
+              Tanpa Frame
+            </button>
           </div>
         </div>
 

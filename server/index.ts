@@ -4,8 +4,17 @@ import { logger } from 'hono/logger';
 import { serveStatic } from 'hono/bun';
 import { sign, verify } from 'hono/jwt';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
-import { existsSync } from 'node:fs';
-import { initDatabase, linkRepo, userRepo, type UserRecord } from './db';
+import { existsSync, readFileSync } from 'node:fs';
+import { 
+  initDatabase, 
+  linkRepo, 
+  userRepo, 
+  settingsRepo, 
+  categoryRepo, 
+  frameRepo, 
+  DB_PATH, 
+  type UserRecord 
+} from './db';
 
 // Inisialisasi basis data SQLite persisten saat peladen mulai berjalan
 initDatabase();
@@ -452,7 +461,10 @@ app.post('/api/links', async (c) => {
       userId = user.id;
       expiresAt = undefined;
     } else {
-      // Pengguna tamu: batasi maksimal 1 tautan aktif dan kadaluwarsa 5 hari
+      const expiryDaysStr = settingsRepo.get('guest_link_expiry_days', '5');
+      const expiryDays = Math.max(1, parseInt(expiryDaysStr, 10) || 5);
+
+      // Pengguna tamu: batasi maksimal 1 tautan aktif dan kadaluwarsa dinamis
       guestToken = c.req.header('x-guest-token') || body.guestToken;
       if (!guestToken) {
         guestToken = `gst-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
@@ -462,13 +474,13 @@ app.post('/api/links', async (c) => {
       if (activeCount >= 1) {
         return c.json({
           success: false,
-          message: 'Mode Tamu dibatasi maksimal 1 tautan aktif (masa aktif 5 hari). Silakan masuk atau buat akun gratis untuk tautan tanpa batas & analitik riil.'
+          message: `Mode Tamu dibatasi maksimal 1 tautan aktif (masa aktif ${expiryDays} hari). Silakan masuk atau buat akun gratis untuk tautan tanpa batas & analitik riil.`
         }, 403);
       }
 
-      // Atur kadaluwarsa 5 hari ke depan
+      // Atur kadaluwarsa sesuai batas hari pengaturan
       const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 5);
+      expiryDate.setDate(expiryDate.getDate() + expiryDays);
       expiresAt = expiryDate.toISOString();
     }
 
@@ -554,7 +566,227 @@ app.post('/api/analytics/reset', async (c) => {
 });
 
 // ==========================================
-// 5. ENDPOINTS PENGALIHAN PUBLIK (REDIRECTION)
+// 5. ENDPOINTS MASTER DATA & ADMIN SETTINGS
+// ==========================================
+
+async function requireAdmin(c: any): Promise<{ user: UserRecord } | { errorResponse: Response }> {
+  const user = await getSessionUser(c);
+  if (!user) {
+    return { errorResponse: c.json({ success: false, message: 'Autentikasi diperlukan. Silakan masuk terlebih dahulu.' }, 401) };
+  }
+  if (user.role !== 'admin') {
+    return { errorResponse: c.json({ success: false, message: 'Akses ditolak. Fitur ini memerlukan hak akses Administrator VIP.' }, 403) };
+  }
+  return { user };
+}
+
+// 5a. Pengaturan Publik (Public Settings)
+app.get('/api/settings', (c) => {
+  const expiryDaysStr = settingsRepo.get('guest_link_expiry_days', '5');
+  return c.json({
+    success: true,
+    data: {
+      guestLinkExpiryDays: parseInt(expiryDaysStr, 10) || 5
+    }
+  });
+});
+
+// 5b. Daftar Kategori Publik Aktif
+app.get('/api/categories', (c) => {
+  const categories = categoryRepo.getAll(true);
+  return c.json({ success: true, data: categories });
+});
+
+// 5c. Daftar Frame Aksi CTA Publik Aktif
+app.get('/api/frames', (c) => {
+  const frames = frameRepo.getAll(true);
+  return c.json({ success: true, data: frames });
+});
+
+// 5d. [ADMIN] Perbarui Pengaturan Aplikasi
+app.patch('/api/admin/settings', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  try {
+    const body = await c.req.json();
+    if (body.guestLinkExpiryDays !== undefined) {
+      const days = Math.max(1, parseInt(body.guestLinkExpiryDays, 10) || 5);
+      settingsRepo.set('guest_link_expiry_days', String(days));
+    }
+
+    const expiryDays = parseInt(settingsRepo.get('guest_link_expiry_days', '5'), 10) || 5;
+    return c.json({
+      success: true,
+      message: 'Pengaturan sistem berhasil diperbarui.',
+      data: {
+        guestLinkExpiryDays: expiryDays
+      }
+    });
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal memperbarui pengaturan.' }, 500);
+  }
+});
+
+// 5e. [ADMIN] Ambil Semua Kategori (Termasuk Non-Aktif)
+app.get('/api/admin/categories', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  const categories = categoryRepo.getAll(false);
+  return c.json({ success: true, data: categories });
+});
+
+// 5f. [ADMIN] Tambah Kategori Baru
+app.post('/api/admin/categories', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  try {
+    const body = await c.req.json();
+    const nama = String(body.nama || '').trim();
+    if (!nama) {
+      return c.json({ success: false, message: 'Nama kategori wajib diisi.' }, 400);
+    }
+
+    const existing = categoryRepo.findByName(nama);
+    if (existing) {
+      return c.json({ success: false, message: `Kategori '${nama}' sudah ada.` }, 409);
+    }
+
+    const created = categoryRepo.create(nama);
+    return c.json({ success: true, message: 'Kategori berhasil ditambahkan.', data: created }, 201);
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal menambahkan kategori.' }, 500);
+  }
+});
+
+// 5g. [ADMIN] Perbarui Kategori (Nama / Status Aktif)
+app.patch('/api/admin/categories/:id', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  const id = c.req.param('id');
+  const existing = categoryRepo.getById(id);
+  if (!existing) {
+    return c.json({ success: false, message: 'Kategori tidak ditemukan.' }, 404);
+  }
+
+  try {
+    const body = await c.req.json();
+    const updated = categoryRepo.update(id, {
+      nama: body.nama !== undefined ? String(body.nama).trim() : undefined,
+      isActive: body.isActive !== undefined ? Boolean(body.isActive) : undefined
+    });
+    return c.json({ success: true, message: 'Kategori berhasil diperbarui.', data: updated });
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal memperbarui kategori.' }, 500);
+  }
+});
+
+// 5h. [ADMIN] Hapus Kategori
+app.delete('/api/admin/categories/:id', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  const id = c.req.param('id');
+  const existing = categoryRepo.getById(id);
+  if (!existing) {
+    return c.json({ success: false, message: 'Kategori tidak ditemukan.' }, 404);
+  }
+
+  const deleted = categoryRepo.delete(id);
+  if (!deleted) {
+    return c.json({ success: false, message: 'Gagal menghapus kategori.' }, 500);
+  }
+  return c.json({ success: true, message: 'Kategori berhasil dihapus.' });
+});
+
+// 5i. [ADMIN] Ambil Semua Frame Aksi (Termasuk Non-Aktif)
+app.get('/api/admin/frames', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  const frames = frameRepo.getAll(false);
+  return c.json({ success: true, data: frames });
+});
+
+// 5j. [ADMIN] Tambah Frame Aksi Baru
+app.post('/api/admin/frames', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  try {
+    const body = await c.req.json();
+    const nama = String(body.nama || '').trim();
+    const teksCta = String(body.teksCta || '').trim();
+    let kode = String(body.kode || '').trim();
+
+    if (!nama || !teksCta) {
+      return c.json({ success: false, message: 'Nama frame dan teks CTA wajib diisi.' }, 400);
+    }
+
+    if (!kode) {
+      kode = nama.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+    }
+
+    const existing = frameRepo.findByKode(kode);
+    if (existing) {
+      return c.json({ success: false, message: `Frame dengan kode '${kode}' sudah ada.` }, 409);
+    }
+
+    const created = frameRepo.create({ nama, teksCta, kode });
+    return c.json({ success: true, message: 'Frame stiker aksi berhasil ditambahkan.', data: created }, 201);
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal menambahkan frame aksi.' }, 500);
+  }
+});
+
+// 5k. [ADMIN] Perbarui Frame Aksi
+app.patch('/api/admin/frames/:id', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  const id = c.req.param('id');
+  const existing = frameRepo.getById(id);
+  if (!existing) {
+    return c.json({ success: false, message: 'Frame aksi tidak ditemukan.' }, 404);
+  }
+
+  try {
+    const body = await c.req.json();
+    const updated = frameRepo.update(id, {
+      nama: body.nama !== undefined ? String(body.nama).trim() : undefined,
+      teksCta: body.teksCta !== undefined ? String(body.teksCta).trim() : undefined,
+      kode: body.kode !== undefined ? String(body.kode).trim() : undefined,
+      isActive: body.isActive !== undefined ? Boolean(body.isActive) : undefined
+    });
+    return c.json({ success: true, message: 'Frame aksi berhasil diperbarui.', data: updated });
+  } catch (err: any) {
+    return c.json({ success: false, message: err.message || 'Gagal memperbarui frame aksi.' }, 500);
+  }
+});
+
+// 5l. [ADMIN] Hapus Frame Aksi
+app.delete('/api/admin/frames/:id', async (c) => {
+  const auth = await requireAdmin(c);
+  if ('errorResponse' in auth) return auth.errorResponse;
+
+  const id = c.req.param('id');
+  const existing = frameRepo.getById(id);
+  if (!existing) {
+    return c.json({ success: false, message: 'Frame aksi tidak ditemukan.' }, 404);
+  }
+
+  const deleted = frameRepo.delete(id);
+  if (!deleted) {
+    return c.json({ success: false, message: 'Gagal menghapus frame aksi.' }, 500);
+  }
+  return c.json({ success: true, message: 'Frame aksi berhasil dihapus.' });
+});
+
+// ==========================================
+// 6. ENDPOINTS PENGALIHAN PUBLIK (REDIRECTION)
 // ==========================================
 
 // 5a. Verifikasi PIN via Form POST
@@ -631,11 +863,17 @@ app.get('/:slug', (c, next) => {
 
 // 6. Penyajian Berkas Frontend Statis (Production Static Files & SPA Fallback)
 if (existsSync('./dist')) {
-  app.use('/*', serveStatic({ root: './dist' }));
-  app.get('*', serveStatic({ path: './dist/index.html' }));
+  app.use('/assets/*', serveStatic({ root: './dist' }));
+  app.use('/favicon.svg', serveStatic({ path: './dist/favicon.svg' }));
+  app.use('/manifest.json', serveStatic({ path: './dist/manifest.json' }));
+  app.use('/sw.js', serveStatic({ path: './dist/sw.js' }));
+  app.get('*', (c) => {
+    const html = readFileSync('./dist/index.html', 'utf-8');
+    return c.html(html);
+  });
 }
 
-console.log(`[SnipLink Peladen] Berjalan di port ${PORT} pada domain ${DOMAIN}`);
+console.log(`[SnipLink Peladen] Berjalan di port ${PORT} pada domain ${DOMAIN} | Basis Data: ${DB_PATH} | Lingkungan: ${process.env.NODE_ENV || 'development'}`);
 
 export default {
   port: PORT,

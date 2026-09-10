@@ -94,7 +94,7 @@ Pastikan hal-hal berikut telah terpenuhi:
    VITE_APP_DOMAIN=okus.me
    VITE_APP_ENV=production
    PORT=8080
-   DATABASE_PATH=/app/data/sniplink.db
+   DATABASE_PATH=/app/data/sniplink-production.db
    ```
 2. Buka tab **"Volumes"**:
    - Host Path / Volume Name: `sniplink_data`

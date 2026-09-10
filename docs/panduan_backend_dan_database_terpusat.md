@@ -103,7 +103,7 @@ Untuk menerapkan ke VPS via Easypanel:
    VITE_APP_DOMAIN=okus.me
    VITE_APP_ENV=production
    PORT=8080
-   DATABASE_PATH=/app/data/sniplink.db
+   DATABASE_PATH=/app/data/sniplink-production.db
    ```
 5. **Domain & Port Routing (*Domains Tab*)**:
    * Klik **"+ Add Domain"**

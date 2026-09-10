@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import type { LinkItem, LinkCategory, QrStudioConfig, TabType } from '../types';
-import { INITIAL_SEED_LINKS, getDb } from '../db/indexedDb';
+import { getDb } from '../db/indexedDb';
 import { APP_CONFIG } from '../config/appConfig';
+import { useAuthStore, getAuthToken } from './useAuthStore';
 
 interface LinkStoreState {
   links: LinkItem[];
@@ -45,37 +46,71 @@ const DEFAULT_QR_CONFIG: QrStudioConfig = {
   ecLevel: 'H'
 };
 
+function checkIsMember(): boolean {
+  if (typeof window === 'undefined') return false;
+  return Boolean(useAuthStore.getState().user || getAuthToken());
+}
+
+function getGuestToken(): string {
+  if (typeof window === 'undefined') return '';
+  let token = localStorage.getItem('sniplink_guest_token');
+  if (!token) {
+    token = `gst-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    localStorage.setItem('sniplink_guest_token', token);
+  }
+  return token;
+}
+
 export const useLinkStore = create<LinkStoreState>((set, get) => ({
-  links: [...INITIAL_SEED_LINKS],
+  links: [],
   activeTab: 'home',
   selectedCategory: 'all',
   searchQuery: '',
-  qrActiveUrl: INITIAL_SEED_LINKS[0].shortUrl,
+  qrActiveUrl: '',
   qrConfig: { ...DEFAULT_QR_CONFIG },
   toastMessage: null,
   toastSuccess: true,
 
   initializeStore: async () => {
-    const guestToken = typeof window !== 'undefined' ? localStorage.getItem('sniplink_guest_token') || '' : '';
+    const isMember = checkIsMember();
+    const guestToken = !isMember ? getGuestToken() : '';
+    const authToken = getAuthToken();
+
+    const headers: Record<string, string> = {};
+    if (guestToken) headers['x-guest-token'] = guestToken;
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
     try {
       const res = await fetch('/api/links', {
         credentials: 'include',
-        headers: {
-          'x-guest-token': guestToken
-        }
+        headers
       });
       if (res.ok) {
         const body = await res.json();
         if (body.success && Array.isArray(body.data)) {
           set({ links: body.data, qrActiveUrl: body.data.length > 0 ? body.data[0].shortUrl : '' });
+
           if (typeof window !== 'undefined' && 'indexedDB' in window) {
             try {
               const db = getDb();
-              await db.links.clear();
-              if (body.data.length > 0) {
-                await db.links.bulkAdd(body.data);
+              if (isMember) {
+                // Member: data tersimpan permanen di database server, JANGAN disimpan di IndexedDB device
+                await db.links.clear();
+              } else {
+                // Non-member: sinkronkan ke IndexedDB device lokal (maksimal 5 hari)
+                await db.links.clear();
+                const now = Date.now();
+                const validLinks = body.data.filter((l: LinkItem) => {
+                  if (l.expiresAt) return new Date(l.expiresAt).getTime() > now;
+                  return true;
+                });
+                if (validLinks.length > 0) {
+                  await db.links.bulkAdd(validLinks);
+                }
               }
-            } catch {}
+            } catch (err) {
+              console.warn('Gagal sinkronisasi IndexedDB:', err);
+            }
           }
           return;
         }
@@ -84,31 +119,56 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
       // API tidak terjangkau (offline / dev standalone)
     }
 
-    try {
-      if (typeof window !== 'undefined' && 'indexedDB' in window) {
-        const db = getDb();
-        const storedLinks = await db.links.toArray();
-        if (storedLinks.length > 0) {
-          set({ links: storedLinks, qrActiveUrl: storedLinks[0].shortUrl });
-        } else {
-          await db.links.bulkAdd(INITIAL_SEED_LINKS);
-          set({ links: [...INITIAL_SEED_LINKS] });
+    // Fallback saat offline: hanya non-member yang membaca dari IndexedDB lokal device (maksimal 5 hari)
+    if (!isMember) {
+      try {
+        if (typeof window !== 'undefined' && 'indexedDB' in window) {
+          const db = getDb();
+          const storedLinks = await db.links.toArray();
+          const now = Date.now();
+          const validLinks = storedLinks.filter(l => {
+            if (l.expiresAt) {
+              return new Date(l.expiresAt).getTime() > now;
+            }
+            if (l.createdAt) {
+              const age = now - new Date(l.createdAt).getTime();
+              return age <= 5 * 24 * 60 * 60 * 1000;
+            }
+            return true;
+          });
+
+          // Bersihkan tautan kadaluwarsa (> 5 hari) dari IndexedDB lokal
+          const expiredIds = storedLinks.filter(l => !validLinks.includes(l)).map(l => l.id);
+          for (const expId of expiredIds) {
+            await db.links.delete(expId);
+          }
+
+          set({ links: validLinks, qrActiveUrl: validLinks.length > 0 ? validLinks[0].shortUrl : '' });
         }
+      } catch (err) {
+        console.warn('Gagal membaca IndexedDB, menggunakan data in-memory:', err);
       }
-    } catch (err) {
-      console.warn('Gagal membaca IndexedDB, menggunakan data in-memory:', err);
+    } else {
+      // Member tidak membaca dari IndexedDB lokal
+      set({ links: [], qrActiveUrl: '' });
     }
   },
 
   addLink: async (data) => {
-    const guestToken = typeof window !== 'undefined' ? localStorage.getItem('sniplink_guest_token') || '' : '';
+    const isMember = checkIsMember();
+    const guestToken = !isMember ? getGuestToken() : '';
+    const authToken = getAuthToken();
+
+    const headers: Record<string, string> = { 
+      'Content-Type': 'application/json'
+    };
+    if (guestToken) headers['x-guest-token'] = guestToken;
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
     try {
       const res = await fetch('/api/links', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-guest-token': guestToken
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify(data)
       });
@@ -117,9 +177,12 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
         if (body.success && body.data) {
           const created = body.data;
           set({ links: [created, ...get().links] });
-          if (typeof window !== 'undefined' && 'indexedDB' in window) {
+
+          if (!isMember && typeof window !== 'undefined' && 'indexedDB' in window) {
+            // Hanya non-member yang disimpan ke IndexedDB device lokal (maksimal 5 hari)
             try { await getDb().links.add(created); } catch {}
           }
+
           get().showToast('Tautan ringkas berhasil dibuat!');
           return created;
         }
@@ -133,44 +196,53 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
       if (err.message && err.message.includes('Mode Tamu')) {
         throw err;
       }
-      // Fallback ke penyimpanan lokal jika offline
-    }
+      // Fallback ke penyimpanan lokal jika non-member dan offline
+      if (!isMember) {
+        const now = new Date().toISOString();
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 5);
+        const newLink: LinkItem = {
+          id: `link-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          originalUrl: data.originalUrl,
+          shortSlug: data.shortSlug,
+          shortUrl: APP_CONFIG.formatShortUrl(data.shortSlug),
+          category: data.category,
+          isActive: true,
+          isPinned: false,
+          pinCode: data.pinCode,
+          expiresAt: expiryDate.toISOString(),
+          createdAt: now,
+          updatedAt: now,
+          clicks: 0,
+          scans: 0,
+          qrConfig: data.qrConfig || { ...get().qrConfig }
+        };
 
+        const updated = [newLink, ...get().links];
+        set({ links: updated });
 
-    const now = new Date().toISOString();
-    const newLink: LinkItem = {
-      id: `link-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      originalUrl: data.originalUrl,
-      shortSlug: data.shortSlug,
-      shortUrl: APP_CONFIG.formatShortUrl(data.shortSlug),
-      category: data.category,
-      isActive: true,
-      isPinned: false,
-      pinCode: data.pinCode,
-      createdAt: now,
-      updatedAt: now,
-      clicks: 0,
-      scans: 0,
-      qrConfig: data.qrConfig || { ...get().qrConfig }
-    };
+        try {
+          if (typeof window !== 'undefined' && 'indexedDB' in window) {
+            const db = getDb();
+            await db.links.add(newLink);
+          }
+        } catch (e) {
+          console.error('Gagal menyimpan ke Dexie:', e);
+        }
 
-    const updated = [newLink, ...get().links];
-    set({ links: updated });
-
-    try {
-      if (typeof window !== 'undefined' && 'indexedDB' in window) {
-        const db = getDb();
-        await db.links.add(newLink);
+        get().showToast('Tautan ringkas tersimpan di perangkat lokal.');
+        return newLink;
       }
-    } catch (e) {
-      console.error('Gagal menyimpan ke Dexie:', e);
+      throw err;
     }
-
-    get().showToast('Tautan ringkas berhasil dibuat!');
-    return newLink;
   },
 
   togglePin: async (id: string) => {
+    const isMember = checkIsMember();
+    const authToken = getAuthToken();
+    const headers: Record<string, string> = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
     const updated = get().links.map(item => {
       if (item.id === id) {
         return { ...item, isPinned: !item.isPinned, updatedAt: new Date().toISOString() };
@@ -180,8 +252,8 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
     set({ links: updated });
 
     try {
-      fetch(`/api/links/${id}/pin`, { method: 'PATCH' }).catch(() => {});
-      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      fetch(`/api/links/${id}/pin`, { method: 'PATCH', headers, credentials: 'include' }).catch(() => {});
+      if (!isMember && typeof window !== 'undefined' && 'indexedDB' in window) {
         const target = updated.find(l => l.id === id);
         if (target) await getDb().links.put(target);
       }
@@ -191,12 +263,17 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
   },
 
   deleteLink: async (id: string) => {
+    const isMember = checkIsMember();
+    const authToken = getAuthToken();
+    const headers: Record<string, string> = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
     const updated = get().links.filter(l => l.id !== id);
     set({ links: updated });
 
     try {
-      fetch(`/api/links/${id}`, { method: 'DELETE' }).catch(() => {});
-      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      fetch(`/api/links/${id}`, { method: 'DELETE', headers, credentials: 'include' }).catch(() => {});
+      if (!isMember && typeof window !== 'undefined' && 'indexedDB' in window) {
         await getDb().links.delete(id);
       }
     } catch (e) {
@@ -206,10 +283,11 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
   },
 
   incrementClicks: async (id: string) => {
+    const isMember = checkIsMember();
     const updated = get().links.map(l => l.id === id ? { ...l, clicks: l.clicks + 1 } : l);
     set({ links: updated });
     try {
-      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      if (!isMember && typeof window !== 'undefined' && 'indexedDB' in window) {
         const target = updated.find(l => l.id === id);
         if (target) await getDb().links.put(target);
       }
@@ -219,10 +297,11 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
   },
 
   incrementScans: async (id: string) => {
+    const isMember = checkIsMember();
     const updated = get().links.map(l => l.id === id ? { ...l, scans: l.scans + 1 } : l);
     set({ links: updated });
     try {
-      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+      if (!isMember && typeof window !== 'undefined' && 'indexedDB' in window) {
         const target = updated.find(l => l.id === id);
         if (target) await getDb().links.put(target);
       }
@@ -249,16 +328,19 @@ export const useLinkStore = create<LinkStoreState>((set, get) => ({
   hideToast: () => set({ toastMessage: null }),
 
   resetToDefault: async () => {
-    set({ links: [...INITIAL_SEED_LINKS], qrActiveUrl: INITIAL_SEED_LINKS[0].shortUrl });
-    try {
-      if (typeof window !== 'undefined' && 'indexedDB' in window) {
-        const db = getDb();
-        await db.links.clear();
-        await db.links.bulkAdd(INITIAL_SEED_LINKS);
+    const isMember = checkIsMember();
+    if (!isMember) {
+      try {
+        if (typeof window !== 'undefined' && 'indexedDB' in window) {
+          const db = getDb();
+          await db.links.clear();
+        }
+      } catch (e) {
+        console.error('Gagal reset data:', e);
       }
-    } catch (e) {
-      console.error('Gagal reset data:', e);
     }
-    get().showToast('Data diatur ulang ke nilai awal.');
+    set({ links: [], qrActiveUrl: '' });
+    get().showToast('Data tautan berhasil dibersihkan.');
   }
 }));
+

@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Search, Download, Upload } from 'lucide-react';
 import { useLinkStore } from '../../stores/useLinkStore';
+import { useAdminStore } from '../../stores/useAdminStore';
 import { exportLinksToJson, exportLinksToCsv, parseAndValidateJsonBackup, downloadFile } from '../../utils/backupHelper';
 import type { LinkCategory } from '../../types';
 
@@ -14,14 +15,24 @@ export function FilterToolbar() {
     showToast
   } = useLinkStore();
 
+  const { categories: dynamicCategories, fetchPublicCategories } = useAdminStore();
+
+  useEffect(() => {
+    fetchPublicCategories();
+  }, [fetchPublicCategories]);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const categories: { label: string; value: LinkCategory | 'all' }[] = [
     { label: 'Semua', value: 'all' },
-    { label: 'Promo', value: 'Promo' },
-    { label: 'Sosial Media', value: 'Sosial Media' },
-    { label: 'Produk', value: 'Produk' },
-    { label: 'Kontak', value: 'Kontak' }
+    ...(dynamicCategories.length > 0 
+      ? dynamicCategories.filter(c => c.isActive).map(c => ({ label: c.nama, value: c.nama }))
+      : [
+          { label: 'Promo', value: 'Promo' },
+          { label: 'Sosial Media', value: 'Sosial Media' },
+          { label: 'Produk', value: 'Produk' },
+          { label: 'Kontak', value: 'Kontak' }
+        ])
   ];
 
   const handleExportJson = () => {

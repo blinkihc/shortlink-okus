@@ -3,7 +3,24 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { LinkItem, LinkCategory, QrStudioConfig } from '../src/types';
 
-const DB_PATH = process.env.DATABASE_PATH || './data/sniplink.db';
+export function resolveDatabasePath(): string {
+  if (process.env.DATABASE_PATH) {
+    return process.env.DATABASE_PATH;
+  }
+  const env = (process.env.NODE_ENV || process.env.APP_ENV || 'development').toLowerCase();
+  if (env === 'production') {
+    return './data/sniplink-production.db';
+  }
+  if (env === 'staging') {
+    return './data/sniplink-staging.db';
+  }
+  if (env === 'test') {
+    return './data/sniplink-test.db';
+  }
+  return './data/sniplink-dev.db';
+}
+
+export const DB_PATH = resolveDatabasePath();
 
 // Pastikan folder penyimpanan data tersedia sebelum inisialisasi SQLite
 const dbDir = dirname(DB_PATH);
@@ -28,6 +45,28 @@ export interface UserRecord {
   google_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface AppSettingRecord {
+  key: string;
+  value: string;
+  updated_at: string;
+}
+
+export interface CategoryRecord {
+  id: string;
+  nama: string;
+  is_active: number;
+  created_at: string;
+}
+
+export interface FrameAksiRecord {
+  id: string;
+  nama: string;
+  teks_cta: string;
+  kode: string;
+  is_active: number;
+  created_at: string;
 }
 
 export function initDatabase() {
@@ -90,6 +129,37 @@ export function initDatabase() {
     );
   `);
 
+  // 4. Skema Tabel Pengaturan Aplikasi (app_settings)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+
+  // 5. Skema Tabel Kategori (kategori)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS kategori (
+      id TEXT PRIMARY KEY,
+      nama TEXT UNIQUE NOT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL
+    );
+  `);
+
+  // 6. Skema Tabel Frame Stiker Aksi CTA (frame_aksi)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS frame_aksi (
+      id TEXT PRIMARY KEY,
+      nama TEXT NOT NULL,
+      teks_cta TEXT NOT NULL,
+      kode TEXT UNIQUE NOT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL
+    );
+  `);
+
   // Indeks untuk performa kueri
   db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_links_short_slug ON links(short_slug);`);
@@ -98,14 +168,63 @@ export function initDatabase() {
   db.run(`CREATE INDEX IF NOT EXISTS idx_links_expires_at ON links(expires_at);`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_analytics_link_id ON analytics_events(link_id);`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_analytics_timestamp ON analytics_events(timestamp);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_kategori_nama ON kategori(nama);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_frame_aksi_kode ON frame_aksi(kode);`);
 
-  // Buat akun Administrator default (Bang Ucup) jika belum ada
+  // Inisialisasi data master & admin default
   seedDefaultAdmin();
+  seedDefaultSettings();
+  seedDefaultCategories();
+  seedDefaultFrames();
 
-  // Periksa apakah tabel links masih kosong. Jika ya, masukkan data percontohan awal.
-  const countRow = db.query('SELECT COUNT(*) as count FROM links').get() as { count: number };
+  // Data percontohan (seed dummy) HANYA diizinkan di lingkungan lokal/development jika tabel kosong.
+  // Lingkungan production & staging DIJAMIN 100% bersih tanpa data tes percontohan.
+  const currentEnv = (process.env.NODE_ENV || process.env.APP_ENV || 'development').toLowerCase();
+  const isProductionOrStaging = currentEnv === 'production' || currentEnv === 'staging';
+
+  if (!isProductionOrStaging) {
+    const countRow = db.query('SELECT COUNT(*) as count FROM links').get() as { count: number };
+    if (countRow.count === 0) {
+      seedInitialLinks();
+    }
+  }
+}
+
+function seedDefaultSettings() {
+  const now = new Date().toISOString();
+  db.run(`
+    INSERT OR IGNORE INTO app_settings (key, value, updated_at)
+    VALUES ('guest_link_expiry_days', '5', ?)
+  `, [now]);
+}
+
+function seedDefaultCategories() {
+  const countRow = db.query('SELECT COUNT(*) as count FROM kategori').get() as { count: number };
   if (countRow.count === 0) {
-    seedInitialLinks();
+    const now = new Date().toISOString();
+    const defaultCategories = ['Promo', 'Sosial Media', 'Produk', 'Kontak'];
+    const insertStmt = db.prepare('INSERT OR IGNORE INTO kategori (id, nama, is_active, created_at) VALUES (?, ?, 1, ?)');
+    for (const cat of defaultCategories) {
+      const id = `cat-${cat.toLowerCase().replace(/\s+/g, '-')}`;
+      insertStmt.run(id, cat, now);
+    }
+  }
+}
+
+function seedDefaultFrames() {
+  const countRow = db.query('SELECT COUNT(*) as count FROM frame_aksi').get() as { count: number };
+  if (countRow.count === 0) {
+    const now = new Date().toISOString();
+    const defaultFrames = [
+      { id: 'frm-scan-me', nama: 'Scan Me', teks_cta: 'SCAN ME!', kode: 'scan-me' },
+      { id: 'frm-menu', nama: 'Menu Resto', teks_cta: 'LIHAT MENU', kode: 'menu' },
+      { id: 'frm-wifi', nama: 'Koneksi WiFi', teks_cta: 'FREE WI-FI', kode: 'wifi' },
+      { id: 'frm-promo', nama: 'Promo Diskon', teks_cta: 'DISKON SPESIAL', kode: 'promo' }
+    ];
+    const insertStmt = db.prepare('INSERT OR IGNORE INTO frame_aksi (id, nama, teks_cta, kode, is_active, created_at) VALUES (?, ?, ?, ?, 1, ?)');
+    for (const f of defaultFrames) {
+      insertStmt.run(f.id, f.nama, f.teks_cta, f.kode, now);
+    }
   }
 }
 
@@ -159,7 +278,6 @@ function formatRowToLink(row: any, domain: string): LinkItem {
 }
 
 function seedInitialLinks() {
-  const now = new Date().toISOString();
   const insertStmt = db.prepare(`
     INSERT INTO links (id, user_id, guest_token, is_claimed, expires_at, original_url, short_slug, category, pin_code, is_active, is_pinned, clicks, scans, qr_config, created_at, updated_at)
     VALUES ($id, $user_id, NULL, 1, NULL, $original_url, $short_slug, $category, $pin_code, $is_active, $is_pinned, $clicks, $scans, $qr_config, $created_at, $updated_at)
@@ -560,5 +678,162 @@ export const linkRepo = {
         `, [userId]);
       }
     })();
+  }
+};
+
+export const settingsRepo = {
+  get: (key: string, defaultValue = ''): string => {
+    const row = db.query('SELECT value FROM app_settings WHERE key = ?').get(key) as { value: string } | null;
+    return row ? row.value : defaultValue;
+  },
+
+  getAll: (): Record<string, string> => {
+    const rows = db.query('SELECT key, value FROM app_settings').all() as { key: string; value: string }[];
+    const result: Record<string, string> = {};
+    for (const r of rows) {
+      result[r.key] = r.value;
+    }
+    return result;
+  },
+
+  set: (key: string, value: string): void => {
+    const now = new Date().toISOString();
+    db.run(
+      `INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+      [key, String(value), now]
+    );
+  }
+};
+
+export const categoryRepo = {
+  getAll: (onlyActive = false): { id: string; nama: string; isActive: boolean; createdAt: string }[] => {
+    const query = onlyActive 
+      ? 'SELECT * FROM kategori WHERE is_active = 1 ORDER BY created_at ASC' 
+      : 'SELECT * FROM kategori ORDER BY created_at ASC';
+    const rows = db.query(query).all() as CategoryRecord[];
+    return rows.map(r => ({
+      id: r.id,
+      nama: r.nama,
+      isActive: Boolean(r.is_active),
+      createdAt: r.created_at
+    }));
+  },
+
+  getById: (id: string) => {
+    const r = db.query('SELECT * FROM kategori WHERE id = ?').get(id) as CategoryRecord | null;
+    if (!r) return null;
+    return {
+      id: r.id,
+      nama: r.nama,
+      isActive: Boolean(r.is_active),
+      createdAt: r.created_at
+    };
+  },
+
+  findByName: (nama: string) => {
+    const r = db.query('SELECT * FROM kategori WHERE LOWER(nama) = LOWER(?)').get(nama.trim()) as CategoryRecord | null;
+    if (!r) return null;
+    return {
+      id: r.id,
+      nama: r.nama,
+      isActive: Boolean(r.is_active),
+      createdAt: r.created_at
+    };
+  },
+
+  create: (nama: string) => {
+    const trimmed = nama.trim();
+    const id = `cat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const now = new Date().toISOString();
+    db.run('INSERT INTO kategori (id, nama, is_active, created_at) VALUES (?, ?, 1, ?)', [id, trimmed, now]);
+    return categoryRepo.getById(id)!;
+  },
+
+  update: (id: string, data: { nama?: string; isActive?: boolean }) => {
+    const existing = categoryRepo.getById(id);
+    if (!existing) return null;
+    const newNama = data.nama !== undefined ? data.nama.trim() : existing.nama;
+    const newActive = data.isActive !== undefined ? (data.isActive ? 1 : 0) : (existing.isActive ? 1 : 0);
+    db.run('UPDATE kategori SET nama = ?, is_active = ? WHERE id = ?', [newNama, newActive, id]);
+    return categoryRepo.getById(id);
+  },
+
+  delete: (id: string): boolean => {
+    const res = db.run('DELETE FROM kategori WHERE id = ?', [id]);
+    return res.changes > 0;
+  }
+};
+
+export const frameRepo = {
+  getAll: (onlyActive = false): { id: string; nama: string; teksCta: string; kode: string; isActive: boolean; createdAt: string }[] => {
+    const query = onlyActive 
+      ? 'SELECT * FROM frame_aksi WHERE is_active = 1 ORDER BY created_at ASC' 
+      : 'SELECT * FROM frame_aksi ORDER BY created_at ASC';
+    const rows = db.query(query).all() as FrameAksiRecord[];
+    return rows.map(r => ({
+      id: r.id,
+      nama: r.nama,
+      teksCta: r.teks_cta,
+      kode: r.kode,
+      isActive: Boolean(r.is_active),
+      createdAt: r.created_at
+    }));
+  },
+
+  getById: (id: string) => {
+    const r = db.query('SELECT * FROM frame_aksi WHERE id = ?').get(id) as FrameAksiRecord | null;
+    if (!r) return null;
+    return {
+      id: r.id,
+      nama: r.nama,
+      teksCta: r.teks_cta,
+      kode: r.kode,
+      isActive: Boolean(r.is_active),
+      createdAt: r.created_at
+    };
+  },
+
+  findByKode: (kode: string) => {
+    const r = db.query('SELECT * FROM frame_aksi WHERE LOWER(kode) = LOWER(?)').get(kode.trim()) as FrameAksiRecord | null;
+    if (!r) return null;
+    return {
+      id: r.id,
+      nama: r.nama,
+      teksCta: r.teks_cta,
+      kode: r.kode,
+      isActive: Boolean(r.is_active),
+      createdAt: r.created_at
+    };
+  },
+
+  create: (data: { nama: string; teksCta: string; kode?: string }) => {
+    const id = `frm-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const now = new Date().toISOString();
+    const cleanKode = (data.kode || data.nama).toLowerCase().replace(/[^a-z0-9-_]/g, '-') || `frm-${Date.now()}`;
+    db.run(
+      'INSERT INTO frame_aksi (id, nama, teks_cta, kode, is_active, created_at) VALUES (?, ?, ?, ?, 1, ?)',
+      [id, data.nama.trim(), data.teksCta.trim(), cleanKode, now]
+    );
+    return frameRepo.getById(id)!;
+  },
+
+  update: (id: string, data: { nama?: string; teksCta?: string; kode?: string; isActive?: boolean }) => {
+    const existing = frameRepo.getById(id);
+    if (!existing) return null;
+    const newNama = data.nama !== undefined ? data.nama.trim() : existing.nama;
+    const newCta = data.teksCta !== undefined ? data.teksCta.trim() : existing.teksCta;
+    const newKode = data.kode !== undefined ? data.kode.toLowerCase().replace(/[^a-z0-9-_]/g, '-') : existing.kode;
+    const newActive = data.isActive !== undefined ? (data.isActive ? 1 : 0) : (existing.isActive ? 1 : 0);
+    db.run(
+      'UPDATE frame_aksi SET nama = ?, teks_cta = ?, kode = ?, is_active = ? WHERE id = ?',
+      [newNama, newCta, newKode, newActive, id]
+    );
+    return frameRepo.getById(id);
+  },
+
+  delete: (id: string): boolean => {
+    const res = db.run('DELETE FROM frame_aksi WHERE id = ?', [id]);
+    return res.changes > 0;
   }
 };
